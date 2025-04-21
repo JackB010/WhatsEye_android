@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:contentDescription="@string/app_icon"
+        android:src="@drawable/app_icon"
+        android:scaleType="centerInside"
+        tools:ignore="ImageContrastCheck" />
+
+    <!-- App Name / Title -->
+    <TextView
+        android:id="@+id/appName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/login"
+        android:textColor="@color/primary_text"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Toggle Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/switch_to_phone_login"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/primary_dark"
+        android:padding="12dp"
+        app:cornerRadius="8dp"
+        android:layout_marginBottom="16dp" />
+
+
+    <!-- Username Login Section -->
+    <LinearLayout
+        android:id="@+id/usernameLoginLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <!-- Username Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/usernameInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="true"
+            android:hint="@string/username_or_email"
+            app:hintTextColor="@color/primary"
+            app:boxStrokeColor="@color/teal_700"
+            app:startIconDrawable="@drawable/ic_user"
+            app:startIconTint="@color/teal_700"
+            app:boxBackgroundColor="@android:color/transparent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUsernameLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:padding="12dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!-- Phone Login Section -->
+    <LinearLayout
+        android:id="@+id/phoneLoginLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Phone Number Field with Country Code -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/countryCodePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:ccp_defaultPhoneCode="1"
+                app:ccp_showNameCode="false"
+                app:ccp_textSize="16sp"
+                app:ccpDialog_textColor="@color/white"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/phoneInputLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:hintEnabled="true"
+                app:hintAnimationEnabled="true"
+                app:hintTextColor="@color/teal_700"
+                android:hint="@string/phone_number"
+                app:boxStrokeColor="@color/teal_700"
+                android:textColor="@color/black"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:startIconDrawable="@drawable/ic_phone"
+                app:startIconTint="@color/primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhoneLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+
+                    android:inputType="phone"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Shared Password Field -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="@string/password"
+        app:boxStrokeWidth="1.5dp"
+        app:hintTextColor="@color/teal_700"
+        app:boxStrokeColor="@color/teal_700"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleTint="@color/teal_700"
+        app:startIconDrawable="@drawable/ic_lock"
+        app:startIconTint="@color/teal_700"
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPasswordLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:inputType="textPassword"
+            android:padding="12dp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Shared Submit Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSubmitLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/login"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/primary_dark"
+        app:cornerRadius="8dp"
+        app:iconGravity="textStart" />
+    <!-- Forgot Password Link -->
+    <TextView
+        android:id="@+id/forgotPasswordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:text="@string/forgot_password"
+        android:textColor="@color/primary_dark"
+        android:gravity="end"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:layout_marginTop="20dp"/>
+
+</LinearLayout>

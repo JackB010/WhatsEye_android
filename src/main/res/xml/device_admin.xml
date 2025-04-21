@@ -1,0 +1,24 @@
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <policy android:name="android.app.device_admin.BIND_DEVICE_ADMIN"/>
+        <policy android:name="android.app.device_admin.RECEIVE_BOOT_COMPLETED"/>
+        <policy android:name="android.app.device_admin.WIPE_DATA"/>
+        <policy android:name="android.app.device_admin.SET_PASSWORD"/>
+        <policy android:name="android.app.device_admin.RESET_PASSWORD"/>
+        <policy android:name="android.app.device_admin.SET_CAMERA"/>
+        <policy android:name="android.app.device_admin.SET_KEYGUARD_DISABLED"/>
+        <policy android:name="android.app.device_admin.RESET_PASSWORD"/>
+        <policy android:name="android.app.device_admin.ADD_USER"/>
+    </uses-policies>
+
+    <permission android:name="your.package.name.permission.BIND_DEVICE_ADMIN"
+        android:protectionLevel="signature" />
+
+    <description>Your app's description of the device administration features.</description>
+
+    <!-- Required for device admin -->
+    <address>
+        <name>Your Device Admin Name</name>
+        <summary>Your Device Admin Summary</summary>
+    </address>
+</device-admin>

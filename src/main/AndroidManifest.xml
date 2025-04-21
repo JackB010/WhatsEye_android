@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="SelectedPhotoAccess">
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- For general file access -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <!-- For general file access -->
+
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- CONTACTS -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+    <!-- CONTACTS -->
+
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.INSTANT_APP_FOREGROUND_SERVICE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_SYSTEM_APPS"/>
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FRAME_STATS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <!-- End Permissions -->
+
+
+    <application
+        android:hardwareAccelerated="true"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/app_icon"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/app_icon"
+        android:supportsRtl="true"
+        android:requestLegacyExternalStorage="true"
+        android:preserveLegacyExternalStorage="true"
+        android:allowClearUserData="false"
+        android:theme="@style/Theme.WhatsEye"
+        tools:targetApi="31">
+
+        <meta-data
+            android:name="com.google.android.actions"
+            android:resource="@xml/edit_text_background" />
+        <!-- Activities -->
+
+        <activity
+            android:name=".LoggedInActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".noLogin.LoginActivity" android:exported="false" />
+        <activity android:name=".noLogin.SignupActivity" android:exported="true"/>
+        <activity android:name=".noLogin.ResetPasswordActivity" android:exported="true"/>
+        <activity android:name=".qrCode.CustomCaptureActivity" android:stateNotNeeded="true"   android:exported="true"/>
+
+        <!-- Access -->
+        <activity android:name=".WhatsAppActivity"  android:exported="true" android:resizeableActivity="true"/>
+        <activity android:name=".access.AccessibilityPermissionActivity"  android:exported="true"/>
+        <activity android:name=".access.DeviceAdminPermissionActivity"  android:exported="true"/>
+        <activity android:name=".access.OverlayPermissionActivity"  android:exported="true"/>
+        <activity android:name=".access.UsageAccessPermissionActivity"  android:exported="true"/>
+        <activity android:name=".access.AutoStartAgreementActivity"  android:exported="true"/>
+        <activity android:name=".access.IgnoreBatteryOptimizationActivity"  android:exported="true"/>
+        <activity android:name=".access.NotificationPermissionActivity"  android:exported="true"/>
+        <activity android:name=".access.FileAccessPermissionActivity"  android:exported="true"/>
+
+        <activity android:name=".lock.LockScreenActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="false">
+        </activity>
+
+
+
+
+
+        <!-- End Access -->
+
+        <!-- End Activities -->
+
+        <!-- Services -->
+        <!-- AppMonitorService -->
+
+       <!-- <service
+            android:name=".access.AppMonitorService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync|specialUse"
+             /> -->
+        <!-- End AppMonitorService -->
+
+        <!-- MyAccessibilityService -->
+        <service
+            android:name=".access.MyAccessibilityService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            tools:ignore="WrongManifestParent">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibility service"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+        <!--  End MyAccessibilityService -->
+
+        <!--  MyDeviceAdminReceiver -->
+        <receiver
+            android:name=".access.MyDeviceAdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:description="@string/Admin_description">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
+        <!-- End  MyDeviceAdminReceiver -->
+        <!-- BootBroadcastReceiver -->
+        <receiver android:name=".access.BootBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </receiver>
+        <!-- End BootBroadcastReceiver -->
+        <!-- NotificationListenerService -->
+        <service
+            android:name=".access.NotificationListenerService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+        <!-- End NotificationListenerService -->
+     
+        <!-- Services -->
+
+    </application>
+</manifest>

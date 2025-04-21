@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Logo -->
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/app_icon"
+            android:src="@drawable/app_icon"
+            android:scaleType="centerInside"
+            tools:ignore="ImageContrastCheck" />
+
+        <!-- App Name / Title -->
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/signup"
+            android:textColor="@color/primary_text"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Username Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/signupUsernameInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="@string/username"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="@color/teal_700"
+            app:startIconTint="@color/teal_700"
+            app:boxStrokeColor="@color/teal_700"
+            app:startIconDrawable="@drawable/ic_user"
+           >
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUsernameSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Phone Number Field with Country Code -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/countryCodePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:ccpDialog_textColor="@color/white"
+                app:ccp_defaultPhoneCode="1"
+                app:ccp_showNameCode="false"
+                app:ccp_textSize="16sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/phoneInputLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/phone_number"
+                app:boxStrokeWidth="1.5dp"
+                app:startIconDrawable="@drawable/ic_phone"
+                app:hintTextColor="@color/teal_700"
+                app:startIconTint="@color/teal_700"
+                app:boxStrokeColor="@color/teal_700">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhoneSignup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:padding="12dp"
+                    android:textColor="@color/black"
+                    android:maxLength="14"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Gender Field (Dropdown) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/genderInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="@string/gender"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="@color/teal_700"
+            app:startIconTint="@color/teal_700"
+            app:boxStrokeColor="@color/teal_700">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/etGenderSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:backgroundTint="@color/zxing_transparent"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Birthday Field (Date Picker) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/birthdayInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="@string/birthday"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="@color/teal_700"
+            app:startIconTint="@color/teal_700"
+            app:boxStrokeColor="@color/teal_700">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etBirthdaySignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:focusable="false"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Password Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/signupPasswordInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="@string/password"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="@color/teal_700"
+            app:boxStrokeColor="@color/teal_700"
+            app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/teal_700"
+            app:startIconDrawable="@drawable/ic_lock"
+            app:startIconTint="@color/teal_700">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPasswordSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Confirm Password Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/signupPasswordConfirmInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:hint="@string/confirm_password"
+            app:boxStrokeWidth="1.5dp"
+            app:hintTextColor="@color/teal_700"
+            app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/teal_700"
+            app:startIconDrawable="@drawable/ic_lock"
+            app:boxStrokeColor="@color/teal_700"
+            app:startIconTint="@color/teal_700">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPasswordConfirmSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Submit Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSignupSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/signup"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:padding="12dp"
+            app:backgroundTint="@color/primary_dark"
+            app:cornerRadius="8dp"
+            app:rippleColor="@color/primary_dark"
+            app:iconGravity="start"
+            app:iconTint="@android:color/white" />
+    </LinearLayout>
+</ScrollView>

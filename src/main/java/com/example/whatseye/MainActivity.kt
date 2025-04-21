@@ -1,0 +1,125 @@
+package com.example.whatseye
+
+
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Bundle
+import android.os.IBinder
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.app.AppCompatActivity
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
+import org.json.JSONObject
+import com.example.whatseye.noLogin.LoginActivity
+import com.example.whatseye.noLogin.SignupActivity
+import com.example.whatseye.qrCode.CustomCaptureActivity
+import com.example.whatseye.trysc.ScrapingService
+
+
+class MainActivity : AppCompatActivity() {
+
+    private var isLogin: Boolean = false // Track whether login or signup was clicked
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as ScrapingService.LocalBinder
+            var scrapingService = binder.getService()
+            var isBound = true
+
+            // Here, you can communicate with the service
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            var isBound = false
+        }
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        val intent = Intent(this, ScrapingService::class.java)
+        bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        startService(intent)
+
+        val buttonLogin: Button = findViewById(R.id.btnLoginMain)
+        val buttonSignup: Button = findViewById(R.id.btnSignupMain)
+        buttonLogin.setOnClickListener {
+            isLogin = true // Set the action to login
+            initiateQRCodeScan()
+        }
+
+        buttonSignup.setOnClickListener {
+            isLogin = false // Set the action to signup
+            initiateQRCodeScan()
+        }
+    }
+
+    private fun initiateQRCodeScan() {
+        val options = ScanOptions()
+        options.setPrompt("Volume up to flash on")
+        options.setBeepEnabled(false)
+        options.setOrientationLocked(true)
+        options.setBarcodeImageEnabled(true)
+        options.setCaptureActivity(CustomCaptureActivity::class.java)
+        barLaucher.launch(options)
+
+    }
+
+    private var barLaucher: ActivityResultLauncher<ScanOptions> =
+        registerForActivityResult<ScanOptions, ScanIntentResult>(
+            ScanContract()
+        ) { result: ScanIntentResult ->
+
+                if (result.contents != null) {
+                    val qrCodeData = result.contents.trim()
+
+                    try {
+                        // Parse the JSON data
+                        val jsonObject = JSONObject(qrCodeData)
+                        val id = jsonObject.getString("id")
+                        val qrCode = jsonObject.getString("qr_code")
+
+                        val baseUrl = "http://127.0.0.1:8000/"
+                        val url = if (isLogin) {
+                            "$baseUrl/login/$id"
+                        } else {
+                            "$baseUrl/signup/$id"
+                        }
+
+                        val targetActivity = if (isLogin) {
+                            LoginActivity::class.java
+                        } else {
+                            SignupActivity::class.java
+                        }
+
+                        val intent = Intent(this, targetActivity).apply {
+                            putExtra("url", url)
+                            putExtra("qrCode", qrCode)
+                        }
+                        startActivity(intent)
+
+                    } catch (e: Exception) {
+                        // Handle JSON parsing error
+                        Toast.makeText(this, "Invalid QR code data format", Toast.LENGTH_SHORT).show()
+                        navigateToMainActivity()
+                    }
+                } else {
+                    Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show()
+                    navigateToMainActivity()
+                }
+
+        }
+
+
+    private fun navigateToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear the stack
+        startActivity(intent)
+        finish() // Optionally finish current activity
+    }
+}

@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">WhatsEye</string>
+    <string name="username">Username</string>
+    <string name="app_slogan">Monitor and manage your child\'s device usage</string>
+    <string name="app_icon">app icon</string>
+    <string name="switch_to_phone_login">Switch to Phone Login</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="gender">Gender</string>
+    <string name="birthday">Birthday</string>
+    <string name="signup">Signup</string>
+    <string name="username_or_email">Username or Email</string>
+    <string name="forgot_password">Forgot your password ?</string>
+    <string name="send">Send</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="switch_to_phone_reset">Switch to phone reset</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="accessibility_permissions">Accessibility permissions</string>
+    <string name="accessibility_service_description">Monitor and manage app usage</string>
+    <string name="device_admin_service">Device admin service</string>
+    <string name="activate_device_admin">Activate Device Admin</string>
+    <string name="Admin_description">Uninstall Protection</string>
+    <string name="display_over_other_apps_permission">Display over other apps permission</string>
+    <string name="usage_access">Usage access</string>
+    <string name="foreground_service">Foreground Service</string>
+    <string name="auto_start_description">To ensure the application runs correctly and stays active after booting, please grant auto-start permission for this application.</string>
+    <string name="activate_auto_start">Activate Auto Start</string>
+    <string name="auto_start_service">Auto start service</string>
+    <string name="enable_ignore_battery_optimization">Enable Ignore Battery Optimization</string>
+    <string name="enable_file_access">Enable File Access</string>
+    <string name="file_access">File Access</string>
+    <string name="ignore_battery_optimization">Ignore Battery Optimization</string>
+    <string name="enable_notifications">Enable Notifications</string>
+
+    <string-array name="gender_options">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+</resources>

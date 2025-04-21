@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="19dp"
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/btngetContact"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="click me" />
+
+    <TextView
+        android:id="@+id/profileTextView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/btngetContact"
+        android:layout_alignParentEnd="true"
+
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        android:scrollbars="horizontal"
+        android:text="Profile Data will appear here"
+        android:textSize="18sp" />
+
+</RelativeLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background color for the layout -->
+    <color name="white">#FFFFFF</color>
+
+    <!-- Telegram-inspired teal color for strokes and button background -->
+    <color name="teal_700">#00695C</color>
+
+    <!-- Text color for the button -->
+    <color name="white_text">@android:color/white</color>
+
+    <!-- Optional: Additional colors for customization -->
+    <color name="gray">#757575</color> <!-- For hint text or disabled states -->
+    <color name="black">#000000</color> <!-- For potential dark theme use -->
+    <color name="primary">#4CAF50</color>
+    <color name="primary_dark">#388E3C</color>
+    <color name="primary_light">#C8E6C9</color>
+
+    <!-- Secondary Colors -->
+    <color name="secondary">#2196F3</color>
+    <color name="secondary_dark">#1976D2</color>
+    <color name="secondary_light">#BBDEFB</color>
+
+    <!-- Text Colors -->
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+
+
+    <!-- Background Colors -->
+    <color name="background_light">#F5F5F5</color>
+    <color name="background_dark">#303030</color>
+</resources>

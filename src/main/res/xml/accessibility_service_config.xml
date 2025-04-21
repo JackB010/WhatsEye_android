@@ -1,0 +1,13 @@
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:description="@string/accessibility_service_description"
+    android:packageNames="com.example.whatseye"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:notificationTimeout="100"
+    android:canRetrieveWindowContent="true"
+    android:canRequestEnhancedWebAccessibility="true"
+    android:canTakeScreenshot="true"
+    android:settingsActivity="com.example.whatseye.access.ServiceSettingsActivity"
+    tools:targetApi="r" />

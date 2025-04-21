@@ -1,0 +1,7 @@
+<!-- res/animator/button_press_animation.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- State when button is pressed -->
+    <item android:state_pressed="true" android:animation="@animator/scale_down"/>
+    <!-- State when button is in default state -->
+    <item android:animation="@animator/scale_up"/>
+</selector>
