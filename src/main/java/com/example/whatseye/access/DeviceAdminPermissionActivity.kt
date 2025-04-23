@@ -25,7 +25,7 @@ class DeviceAdminPermissionActivity : AppCompatActivity() {
 
         // Initialize Device Policy Manager
         devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        componentName = ComponentName(this, MyDeviceAdminReceiver::class.java)
+        componentName = ComponentName(this, DeviceAdminReceiver::class.java)
 
         updateStatus()
 

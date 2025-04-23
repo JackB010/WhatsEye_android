@@ -2,16 +2,20 @@ package com.example.whatseye
 
 
 
-import android.content.ComponentName
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
@@ -19,32 +23,40 @@ import org.json.JSONObject
 import com.example.whatseye.noLogin.LoginActivity
 import com.example.whatseye.noLogin.SignupActivity
 import com.example.whatseye.qrCode.CustomCaptureActivity
-import com.example.whatseye.trysc.ScrapingService
+import com.example.whatseye.services.AlwaysRunningService
+import com.example.whatseye.worker.UsageWorker
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
 
     private var isLogin: Boolean = false // Track whether login or signup was clicked
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as ScrapingService.LocalBinder
-            var scrapingService = binder.getService()
-            var isBound = true
 
-            // Here, you can communicate with the service
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            var isBound = false
-        }
-    }
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
+
+//        val workRequest = PeriodicWorkRequestBuilder<UsageWorker>(1, TimeUnit.HOURS)
+//            .build()
+//
+//        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+//            "usage_tracking_wr",
+//            ExistingPeriodicWorkPolicy.KEEP,
+//            workRequest
+//        )
+
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            val channel = NotificationChannel("AlwaysRunningServiceChannel","This service is running in the background.",
+                NotificationManager.IMPORTANCE_HIGH)
+            val notificationManger  = getSystemService(Context.NOTIFICATION_SERVICE)  as NotificationManager
+            notificationManger.createNotificationChannel(channel)
+        }
+        val serviceIntent = Intent(this, AlwaysRunningService::class.java)
+        startForegroundService(serviceIntent) // Use startService(serviceIntent) for pre-Oreo
+
         setContentView(R.layout.activity_main)
-        val intent = Intent(this, ScrapingService::class.java)
-        bindService(intent, connection, Context.BIND_AUTO_CREATE)
-        startService(intent)
+
 
         val buttonLogin: Button = findViewById(R.id.btnLoginMain)
         val buttonSignup: Button = findViewById(R.id.btnSignupMain)

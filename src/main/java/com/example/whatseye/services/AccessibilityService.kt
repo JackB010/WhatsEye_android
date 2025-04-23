@@ -1,10 +1,10 @@
-package com.example.whatseye.access
+package com.example.whatseye.services
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
 
 
-class MyAccessibilityService : AccessibilityService() {
+class AccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         // Respond to accessibility events here
