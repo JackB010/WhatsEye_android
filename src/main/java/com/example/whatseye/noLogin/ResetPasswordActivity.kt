@@ -4,12 +4,10 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.whatseye.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import com.hbb20.CountryCodePicker
 
 class ResetPasswordActivity : AppCompatActivity() {
     private lateinit var toggleButton: MaterialButton

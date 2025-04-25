@@ -6,7 +6,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.example.whatseye.dataType.UsageData
+import com.example.whatseye.dataType.data.UsageData
 
 class UsageDatabase(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -19,6 +19,7 @@ class UsageDatabase(context: Context) :
         private const val COLUMN_DATE = "date"
         private const val COLUMN_HOUR = "hour"
         private const val COLUMN_USAGE_SECONDS = "usage_seconds"
+        private const val COLUMN_SENT = "sent"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -27,6 +28,7 @@ class UsageDatabase(context: Context) :
                 $COLUMN_DATE TEXT NOT NULL,
                 $COLUMN_HOUR INTEGER NOT NULL,
                 $COLUMN_USAGE_SECONDS INTEGER,
+                $COLUMN_SENT INTEGER DEFAULT 0,
                 PRIMARY KEY ($COLUMN_DATE, $COLUMN_HOUR)
             )
         """.trimIndent()
@@ -38,29 +40,49 @@ class UsageDatabase(context: Context) :
         onCreate(db)
     }
 
-    fun insertUsageData(date: String, hour: Int, usageSeconds: Long): Long {
+    @Synchronized
+    fun insertOrUpdateUsageData(date: String, hour: Int, usageSeconds: Long): Long {
         val db = writableDatabase
-        val contentValues = ContentValues().apply {
-            put(COLUMN_DATE, date)
-            put(COLUMN_HOUR, hour)
-            put(COLUMN_USAGE_SECONDS, usageSeconds)
+        db.beginTransaction()
+        return try {
+            val cursor = db.rawQuery(
+                "SELECT $COLUMN_SENT FROM $TABLE_USAGE WHERE $COLUMN_DATE = ? AND $COLUMN_HOUR = ?",
+                arrayOf(date, hour.toString())
+            )
+
+            val shouldInsert: Boolean = !cursor.moveToFirst()
+            cursor.close()
+
+            val result: Long
+
+            if (shouldInsert) {
+                val contentValues = ContentValues().apply {
+                    put(COLUMN_DATE, date)
+                    put(COLUMN_HOUR, hour)
+                    put(COLUMN_USAGE_SECONDS, usageSeconds)
+                    put(COLUMN_SENT, 0) // Mark new data as unsent
+                }
+                result = db.insert(TABLE_USAGE, null, contentValues)
+                Log.d("UsageDatabase", "Inserted new unsent usage data: date=$date, hour=$hour, usage_seconds=$usageSeconds")
+            } else {
+                Log.d("UsageDatabase", "Skipped insert: already exists")
+                result = 0L
+            }
+
+            db.setTransactionSuccessful()
+            result
+        } catch (e: Exception) {
+            Log.e("UsageDatabase", "Error inserting usage data", e)
+            -1L
+        } finally {
+            db.endTransaction()
         }
-
-        val result = db.insertWithOnConflict(
-            TABLE_USAGE,
-            null,
-            contentValues,
-            SQLiteDatabase.CONFLICT_REPLACE
-        )
-
-        Log.d("UsageDatabase", "Inserted/Updated: date=$date, hour=$hour, usage_seconds=$usageSeconds")
-        return result
     }
 
     @SuppressLint("Range")
     fun getUnsent(): List<UsageData> {
         val db = readableDatabase
-        val query = "SELECT * FROM $TABLE_USAGE"
+        val query = "SELECT * FROM $TABLE_USAGE WHERE $COLUMN_SENT = 0"
         val cursor = db.rawQuery(query, null)
         val unsentData = mutableListOf<UsageData>()
 
@@ -76,13 +98,17 @@ class UsageDatabase(context: Context) :
         return unsentData
     }
 
-    fun deleteUsageData(date: String, hour: Int) {
+    fun markAsSent(date: String, hour: Int) {
         val db = writableDatabase
-        db.delete(
+        val contentValues = ContentValues().apply {
+            put(COLUMN_SENT, 1)
+        }
+        db.update(
             TABLE_USAGE,
+            contentValues,
             "$COLUMN_DATE = ? AND $COLUMN_HOUR = ?",
             arrayOf(date, hour.toString())
         )
-        Log.d("UsageDatabase", "Deleted: date=$date, hour=$hour")
+        Log.d("UsageDatabase", "Marked as sent: date=$date, hour=$hour")
     }
 }

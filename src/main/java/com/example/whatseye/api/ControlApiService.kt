@@ -1,15 +1,14 @@
 package com.example.whatseye.api
 
-import com.example.whatseye.dataType.UsageData
+import com.example.whatseye.dataType.data.UsageData
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
-import retrofit2.http.Path
 
-interface ApiService {
-    @POST("api/control/user-usage/{userId}/")
+interface ControlApiService {
+
+    @POST("control/user-usage/")
     fun sendUsageData(
-        @Path("userId") userId: String,
         @Body data: UsageData
     ): Call<Void>
 }

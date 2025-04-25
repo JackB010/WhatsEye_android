@@ -1,4 +1,4 @@
-package com.example.whatseye.dataType
+package com.example.whatseye.dataType.data
 
 data class NotificationData(
     val title: String,

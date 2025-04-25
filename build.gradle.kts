@@ -76,6 +76,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
+    implementation("com.auth0.android:jwtdecode:2.0.2")
     // WebSocket library
     implementation("io.ktor:ktor-client-core:2.3.4")
     implementation("io.ktor:ktor-client-cio:2.3.4")

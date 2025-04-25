@@ -1,6 +1,6 @@
 package com.example.whatseye.api
 
-import com.example.whatseye.dataType.NotificationData
+import com.example.whatseye.dataType.data.NotificationData
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request

@@ -5,13 +5,15 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.whatseye.api.RetrofitClient
-import com.example.whatseye.dataType.UsageData
+import com.example.whatseye.dataType.data.UsageData
 import com.example.whatseye.dataType.db.UsageDatabase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
@@ -28,26 +30,33 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
     private val dbHelper = UsageDatabase(appContext)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        RetrofitClient.initialize(applicationContext)
+
         try {
-            val calendar = Calendar.getInstance()
-            val endTime = calendar.timeInMillis
-            calendar.add(Calendar.HOUR_OF_DAY, -1)
-            val startTime = calendar.timeInMillis
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val currentDate = dateFormat.format(calendar.time)
 
-            val usageSeconds = calculateWhatsAppUsage(startTime, endTime)
+            val now = Calendar.getInstance()
+            val currentDate = dateFormat.format(now.time)
+            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+            val currentUsageSeconds = getHourUsage(now.timeInMillis)
+
+            sendDataToServer(UsageData(currentDate,currentHour,currentUsageSeconds))
+            Log.d("sendDataToServer", "sendDataToServer")
+
+            val previous = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, -1) }
+            val previousHour  = previous.get(Calendar.HOUR_OF_DAY)
+            val previousDate  = dateFormat.format(previous.time)
+            val previousUsageSeconds  = getHourUsage(previous.timeInMillis)
 
             // Save locally with (date, hour)
-            dbHelper.insertUsageData(currentDate, hour, usageSeconds)
+            dbHelper.insertOrUpdateUsageData(previousDate, previousHour , previousUsageSeconds )
 
             if (isInternetAvailable(applicationContext)) {
                 val unsent = dbHelper.getUnsent()
                 for (data in unsent) {
+                    delay(500)
                     if (sendDataToServer(data)) {
-                        dbHelper.deleteUsageData(data.date, data.hour)
+                        dbHelper.markAsSent(data.date, data.hour)
                     }
                 }
             }
@@ -59,15 +68,32 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun calculateWhatsAppUsage(startTime: Long, endTime: Long): Long {
+    private fun getHourUsage(referenceTime: Long): Long {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = referenceTime
+
+        // Start of hour
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        // End of hour
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val endTime = calendar.timeInMillis
+
         val events = usageStatsManager.queryEvents(startTime, endTime)
+
         var usageMillis = 0L
         var lastForegroundTime = 0L
         var lastPackage: String? = null
-        val event = UsageEvents.Event()
 
+        val event = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
+
             if (event.packageName != "com.whatsapp") continue
 
             when (event.eventType) {
@@ -75,7 +101,6 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
                     lastForegroundTime = event.timeStamp
                     lastPackage = event.packageName
                 }
-
                 UsageEvents.Event.MOVE_TO_BACKGROUND -> {
                     if (lastForegroundTime > 0 && lastPackage == "com.whatsapp") {
                         usageMillis += event.timeStamp - lastForegroundTime
@@ -85,8 +110,7 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
                 }
             }
         }
-
-        return usageMillis / 1000
+        return usageMillis / 1000 // seconds
     }
 
     private fun isInternetAvailable(context: Context): Boolean {
@@ -97,8 +121,7 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     private suspend fun sendDataToServer(data: UsageData): Boolean = withContext(Dispatchers.IO) {
-        val userId = "40e98f0a-6905-4aef-80ec-4682b96d1e08"
-        val call = RetrofitClient.api.sendUsageData(userId, data)
+        val call = RetrofitClient.controlApi.sendUsageData(data)
         val deferred = CompletableDeferred<Boolean>()
 
         call.enqueue(object : Callback<Void> {

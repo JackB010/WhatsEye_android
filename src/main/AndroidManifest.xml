@@ -109,12 +109,14 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".noLogin.LoginOrSingup"
+            android:exported="false" />
+        <activity
             android:name=".noLogin.LoginActivity"
             android:exported="false" />
         <activity
             android:name=".UsageActivity"
             android:exported="true" />
-
         <activity
             android:name=".noLogin.SignupActivity"
             android:exported="true" />

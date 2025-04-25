@@ -142,6 +142,7 @@
         app:passwordToggleTint="@color/teal_700"
         app:startIconDrawable="@drawable/ic_lock"
         app:startIconTint="@color/teal_700"
+
         >
 
         <com.google.android.material.textfield.TextInputEditText

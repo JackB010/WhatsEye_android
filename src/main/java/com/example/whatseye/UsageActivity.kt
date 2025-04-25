@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.text.HexFormat
 
 class UsageActivity : AppCompatActivity() {
 
@@ -31,7 +32,7 @@ class UsageActivity : AppCompatActivity() {
             if (!hasUsageStatsPermission()) {
                 startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
             } else {
-                getAppUsage()
+                getHourlyUsage()
             }
         }
     }

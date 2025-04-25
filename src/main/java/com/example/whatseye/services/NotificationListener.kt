@@ -4,7 +4,7 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.example.whatseye.api.WebSocketClient
-import com.example.whatseye.dataType.NotificationData
+import com.example.whatseye.dataType.data.NotificationData
 
 class NotificationListener : NotificationListenerService() {
     private val webSocketManager = WebSocketClient()
@@ -15,6 +15,7 @@ class NotificationListener : NotificationListenerService() {
     }
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if(sbn.packageName!= "com.whatsapp") return
+
         val notification = sbn.notification
         val extras = notification.extras
 
