@@ -33,6 +33,13 @@
     <string name="file_access">File Access</string>
     <string name="ignore_battery_optimization">Ignore Battery Optimization</string>
     <string name="enable_notifications">Enable Notifications</string>
+    <string name="unlock">unlock</string>
+    <string name="enter_pin">Enter your pin</string>
+    <string name="digit_1">First digit</string>
+    <string name="digit_2">Second digit</string>
+    <string name="digit_3">Third digit</string>
+    <string name="digit_4">Fourth digit</string>
+    <string name="digit_5">Fifth digit</string>
 
     <string-array name="gender_options">
         <item>Male</item>

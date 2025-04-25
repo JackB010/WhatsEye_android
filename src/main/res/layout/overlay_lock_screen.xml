@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/white"
+    android:clipToPadding="false">
+
+    <!-- App Logo with subtle animation -->
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:contentDescription="@string/app_icon"
+        android:scaleType="centerInside"
+        android:src="@drawable/app_icon"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="-100dp"
+        android:transitionName="logo_transition"
+        tools:ignore="ImageContrastCheck" />
+
+    <!-- Title with modern typography -->
+    <TextView
+        android:id="@+id/prompt_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/enter_pin"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_text"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="32dp"
+        android:alpha="0.9" />
+
+    <!-- PIN Input Boxes with spacing and shadow -->
+    <LinearLayout
+        android:id="@+id/pinContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:padding="8dp"
+        android:elevation="4dp">
+
+        <!-- PIN Digit 1 -->
+        <EditText
+            android:id="@+id/pin1"
+            style="@style/PinDigitStyle"
+            android:layout_marginEnd="8dp"
+            android:importantForAutofill="no"
+            android:hint="@string/digit_1"
+            android:textColorHint="@color/transparent"
+            android:inputType="numberPassword"
+            android:background="@drawable/pin_input_background_default" />
+
+        <!-- PIN Digit 2 -->
+        <EditText
+            android:id="@+id/pin2"
+            style="@style/PinDigitStyle"
+            android:layout_marginEnd="8dp"
+            android:importantForAutofill="no"
+            android:hint="@string/digit_2"
+            android:inputType="numberPassword"
+            android:textColorHint="@color/transparent"
+            android:background="@drawable/pin_input_background_default" />
+
+        <!-- PIN Digit 3 -->
+        <EditText
+            android:id="@+id/pin3"
+            style="@style/PinDigitStyle"
+            android:layout_marginEnd="8dp"
+            android:importantForAutofill="no"
+            android:hint="@string/digit_3"
+            android:textColorHint="@color/transparent"
+            android:inputType="numberPassword"
+            android:background="@drawable/pin_input_background_default" />
+
+        <!-- PIN Digit 4 -->
+        <EditText
+            android:id="@+id/pin4"
+            style="@style/PinDigitStyle"
+            android:layout_marginEnd="8dp"
+            android:importantForAutofill="no"
+            android:hint="@string/digit_3"
+            android:textColorHint="@color/transparent"
+            android:inputType="numberPassword"
+            android:background="@drawable/pin_input_background_default" />
+
+        <!-- PIN Digit 5 -->
+        <EditText
+            android:id="@+id/pin5"
+            style="@style/PinDigitStyle"
+            android:importantForAutofill="no"
+            android:hint="@string/digit_5"
+            android:textColorHint="@color/transparent"
+            android:inputType="numberPassword"
+            android:background="@drawable/pin_input_background_default" />
+    </LinearLayout>
+
+
+</LinearLayout>

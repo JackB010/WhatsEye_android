@@ -11,9 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.whatseye.api.JwtTokenManager
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.noLogin.LoginOrSingup
 import com.example.whatseye.services.AlwaysRunningService
+import com.example.whatseye.services.AppMonitorService
 import com.example.whatseye.worker.UsageWorker
 import java.util.concurrent.TimeUnit
 
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         val tokenManager = JwtTokenManager(this)
 
         if(tokenManager.getIsLogin()) {
+            startService(Intent(this, AppMonitorService::class.java))
+
             val workRequest = PeriodicWorkRequestBuilder<UsageWorker>(15, TimeUnit.MINUTES)
                 .build()
             WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(

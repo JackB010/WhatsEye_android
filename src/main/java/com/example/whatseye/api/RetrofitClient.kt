@@ -1,6 +1,7 @@
 package com.example.whatseye.api
 
 import android.content.Context
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

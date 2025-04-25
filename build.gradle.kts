@@ -78,9 +78,6 @@ dependencies {
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
     implementation("com.auth0.android:jwtdecode:2.0.2")
     // WebSocket library
-    implementation("io.ktor:ktor-client-core:2.3.4")
-    implementation("io.ktor:ktor-client-cio:2.3.4")
-    implementation("io.ktor:ktor-client-websockets:2.3.4")
 
 
 }

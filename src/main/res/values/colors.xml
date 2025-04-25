@@ -29,4 +29,5 @@
     <!-- Background Colors -->
     <color name="background_light">#F5F5F5</color>
     <color name="background_dark">#303030</color>
+    <color name="transparent">#00000000</color>
 </resources>

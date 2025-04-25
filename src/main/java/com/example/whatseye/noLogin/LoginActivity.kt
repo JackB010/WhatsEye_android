@@ -10,7 +10,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.auth0.android.jwt.JWT
 import com.example.whatseye.R
-import com.example.whatseye.api.JwtTokenManager
+import com.example.whatseye.access.LockScreenActivity
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.RetrofitClient
 import com.example.whatseye.dataType.data.LoginData
 import com.google.android.material.button.MaterialButton
@@ -122,7 +123,7 @@ class LoginActivity : AppCompatActivity() {
                             Toast.makeText(this@LoginActivity, "Connexion réussie !", Toast.LENGTH_SHORT).show()
 
                             // Navigate to SignupActivity or MainActivity
-                            val intent = Intent(this@LoginActivity, SignupActivity::class.java)
+                            val intent = Intent(this@LoginActivity, LockScreenActivity::class.java)
                             startActivity(intent)
                             finish()
 

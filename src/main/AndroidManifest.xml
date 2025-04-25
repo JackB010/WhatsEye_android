@@ -32,6 +32,7 @@
     <!-- Permissions -->
     <!-- For general file access -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
@@ -62,7 +63,8 @@
     <!-- LOCATION -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- LOCATION -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- LOCATION -->
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -104,9 +106,9 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".noLogin.LoginOrSingup"
@@ -131,6 +133,9 @@
             android:name=".WhatsAppActivity"
             android:exported="true"
             android:resizeableActivity="true" />
+        <activity
+            android:name=".access.LockScreenActivity"
+            android:exported="true" />
         <activity
             android:name=".access.AccessibilityPermissionActivity"
             android:exported="true" />
@@ -229,6 +234,11 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <service android:name=".services.AppMonitorService"
+            android:exported="false"/>
+        <service android:name=".services.LockOverlayService"
+            android:exported="false"/>
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.example.whatseye.api
+package com.example.whatseye.api.managers
 
 import android.content.Context
 import android.content.SharedPreferences
