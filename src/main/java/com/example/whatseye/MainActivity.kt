@@ -24,9 +24,14 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val serviceIntent = Intent(this, AlwaysRunningService::class.java)
+        startForegroundService(serviceIntent) // Use startService(serviceIntent) for pre-Oreo
+
         val tokenManager = JwtTokenManager(this)
 
         if(tokenManager.getIsLogin()) {
+
+
             startService(Intent(this, AppMonitorService::class.java))
 
             val workRequest = PeriodicWorkRequestBuilder<UsageWorker>(15, TimeUnit.MINUTES)
@@ -46,8 +51,6 @@ class MainActivity : AppCompatActivity() {
                     getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManger.createNotificationChannel(channel)
             }
-            val serviceIntent = Intent(this, AlwaysRunningService::class.java)
-            startForegroundService(serviceIntent) // Use startService(serviceIntent) for pre-Oreo
         }
 
         if(!tokenManager.getIsLogin()){

@@ -17,7 +17,11 @@ class PasskeyManager(context: Context) {
      * Save the passkey in SHA-256 format.
      */
     fun savePasskey(passkey: String) {
-        val hashedPasskey = hashWithSHA256(passkey)
+        val hashedPasskey = hashWithSHA512(passkey)
+        sharedPreferences.edit().putString(PASSKEY_KEY, hashedPasskey).apply()
+    }
+
+    fun savePasskeyWS(hashedPasskey: String) {
         sharedPreferences.edit().putString(PASSKEY_KEY, hashedPasskey).apply()
     }
 
@@ -31,8 +35,8 @@ class PasskeyManager(context: Context) {
     /**
      * Hash a string using SHA-256.
      */
-    private fun hashWithSHA256(input: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
+    private fun hashWithSHA512(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-512")
         val hashedBytes = digest.digest(input.toByteArray(Charsets.UTF_8))
         return hashedBytes.joinToString("") { "%02x".format(it) }
     }
@@ -41,6 +45,6 @@ class PasskeyManager(context: Context) {
      * Check if a provided passkey matches the stored passkey.
      */
     fun isPasskeyValid(passkey: String): Boolean {
-        return hashWithSHA256(passkey) == getPasskey()
+        return hashWithSHA512(passkey) == getPasskey()
     }
 }

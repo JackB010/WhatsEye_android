@@ -1,4 +1,4 @@
-package com.example.whatseye.api
+package com.example.whatseye.api.ws
 
 import com.example.whatseye.dataType.data.NotificationData
 import com.google.gson.Gson
@@ -7,7 +7,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 
-class WebSocketClient {
+class WebSocketClientNotification {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient()
     private val gson = Gson()

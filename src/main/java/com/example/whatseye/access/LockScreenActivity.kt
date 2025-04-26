@@ -1,12 +1,10 @@
 package com.example.whatseye.access
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Vibrator
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
-import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -37,10 +35,10 @@ class LockScreenActivity : AppCompatActivity() {
     private fun setupPinInputsAndButton() {
         val pinFields = arrayOf(
             findViewById<EditText>(R.id.pin1),
-            findViewById<EditText>(R.id.pin2),
-            findViewById<EditText>(R.id.pin3),
-            findViewById<EditText>(R.id.pin4),
-            findViewById<EditText>(R.id.pin5)
+            findViewById(R.id.pin2),
+            findViewById(R.id.pin3),
+            findViewById(R.id.pin4),
+            findViewById(R.id.pin5)
         )
 
         pinFields.forEachIndexed { index, editText ->
@@ -62,7 +60,6 @@ class LockScreenActivity : AppCompatActivity() {
                     pinFields.getOrNull(index - 1)?.let {
                         it.text.clear()
                         it.requestFocus()
-                        vibrator.vibrate(50)
                     }
                     true
                 } else {
@@ -85,12 +82,10 @@ class LockScreenActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (s?.length == 1) {
-                    vibrator.vibrate(30)
                     if (checkPinFieldsFull(allFields)) validatePin(allFields)
                     else nextField?.requestFocus()
                 } else if (s.isNullOrEmpty() && before > 0) {
                     previousField?.requestFocus()
-                    vibrator.vibrate(30)
                 }
             }
 
@@ -149,14 +144,10 @@ class LockScreenActivity : AppCompatActivity() {
     private fun showError(pinFields: Array<EditText>, errorMessage: String = "Incorrect PIN") {
         val pinContainer = findViewById<LinearLayout>(R.id.pinContainer)
         pinContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake))
-        vibrator.vibrate(100)
-
         pinFields.forEach {
             it.setBackgroundResource(R.drawable.pin_input_background_error)
         }
-
-
-
+        
         coroutineScope.launch {
             delay(500)
             pinFields.forEach {

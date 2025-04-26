@@ -3,15 +3,17 @@ package com.example.whatseye.services
 import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import com.example.whatseye.api.WebSocketClient
+import com.example.whatseye.api.ws.WebSocketClientNotification
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.dataType.data.NotificationData
 
 class NotificationListener : NotificationListenerService() {
-    private val webSocketManager = WebSocketClient()
+    private val webSocketManager = WebSocketClientNotification()
+
 
     override fun onCreate() {
         super.onCreate()
-        webSocketManager.initWebSocket("ws://192.168.243.116:8000/ws/notifications/")
+        webSocketManager.initWebSocket("ws://192.168.243.116:8000/ws/notifications/?token=${JwtTokenManager(this).getAccessJwt()}")
     }
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if(sbn.packageName!= "com.whatsapp") return

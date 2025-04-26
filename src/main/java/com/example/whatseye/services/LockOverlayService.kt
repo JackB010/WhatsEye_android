@@ -1,11 +1,11 @@
 package com.example.whatseye.services
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
-import android.os.Vibrator
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
@@ -26,6 +26,7 @@ class LockOverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    @SuppressLint("InflateParams")
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -57,10 +58,10 @@ class LockOverlayService : Service() {
     private fun setupPinInputsAndButton() {
         val pinFields = arrayOf(
             overlayView.findViewById<EditText>(R.id.pin1),
-            overlayView.findViewById<EditText>(R.id.pin2),
-            overlayView.findViewById<EditText>(R.id.pin3),
-            overlayView.findViewById<EditText>(R.id.pin4),
-            overlayView.findViewById<EditText>(R.id.pin5)
+            overlayView.findViewById(R.id.pin2),
+            overlayView.findViewById(R.id.pin3),
+            overlayView.findViewById(R.id.pin4),
+            overlayView.findViewById(R.id.pin5)
         )
 
         pinFields.forEachIndexed { index, editText ->
@@ -135,7 +136,7 @@ class LockOverlayService : Service() {
 
     private fun validatePin(pinFields: Array<EditText>) {
         val pin = pinFields.joinToString("") { it.text.toString() }
-        var passkeyManager: PasskeyManager =   PasskeyManager(this)
+        val passkeyManager =   PasskeyManager(this@LockOverlayService)
         if (passkeyManager.isPasskeyValid(pin)) { // Replace with actual validation logic
             stopSelf()
         } else {

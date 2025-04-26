@@ -5,8 +5,9 @@ import android.content.SharedPreferences
 
 class JwtTokenManager(context: Context) {
     // 1. Get SharedPreferences through context
+    //authJWT
     private val sharedPrefs: SharedPreferences =
-        context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+        context.getSharedPreferences("OK", Context.MODE_PRIVATE)
 
     // 2. Remove 'override' and 'suspend' (SharedPreferences operations are synchronous)
     fun saveAccessJwt(token: String) {

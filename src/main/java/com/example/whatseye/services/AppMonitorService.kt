@@ -4,10 +4,8 @@ import android.app.Service
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Intent
-import android.net.Uri
 import android.os.*
 import android.provider.Settings
-import android.util.Log
 
 class AppMonitorService : Service() {
 
