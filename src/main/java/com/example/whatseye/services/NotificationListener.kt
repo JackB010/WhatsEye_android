@@ -13,7 +13,7 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-        webSocketManager.initWebSocket("ws://192.168.243.116:8000/ws/notifications/?token=${JwtTokenManager(this).getAccessJwt()}")
+        webSocketManager.initWebSocket("ws://192.168.128.116:8000/ws/notifications/?token=${JwtTokenManager(this).getAccessJwt()}")
     }
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if(sbn.packageName!= "com.whatsapp") return

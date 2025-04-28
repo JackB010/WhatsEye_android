@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import com.example.whatseye.api.managers.JwtTokenManager
-import com.example.whatseye.api.ws.WebSocketClientPin
+import com.example.whatseye.api.ws.WebSocketClientGeneral
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
 
@@ -14,7 +14,7 @@ class AlwaysRunningService : Service() {
 
     private val TAG = "AlwaysRunningService"
     private val CHANNEL_ID = "AlwaysRunningServiceChannel"
-    private var webSocketClient: WebSocketClientPin? = null
+    private var webSocketClient: WebSocketClientGeneral? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -28,9 +28,9 @@ class AlwaysRunningService : Service() {
 
         if(tokenManager.getIsLogin()) {
             if (webSocketClient == null) {
-                webSocketClient = WebSocketClientPin(
+                webSocketClient = WebSocketClientGeneral(
                     this,
-                    "ws://192.168.243.116:8000/ws/general/${JwtTokenManager(this).getUserId()}/?token=${
+                    "ws://192.168.128.116:8000/ws/general/${JwtTokenManager(this).getUserId()}/?token=${
                         JwtTokenManager(
                             this
                         ).getAccessJwt()

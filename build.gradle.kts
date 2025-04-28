@@ -75,6 +75,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
     implementation("com.auth0.android:jwtdecode:2.0.2")
     // WebSocket library

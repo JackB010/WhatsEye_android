@@ -73,6 +73,7 @@
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_SYSTEM_APPS" />
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission
         android:name="android.permission.FRAME_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -112,7 +113,7 @@
         </activity>
         <activity
             android:name=".noLogin.LoginOrSingup"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".noLogin.LoginActivity"
             android:exported="false" />
@@ -166,16 +167,7 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" /> <!-- End Access -->
         <!-- End Activities -->
         <!-- Services -->
-        <!-- AppMonitorService -->
-        <!--
- <service
-            android:name=".access.AppMonitorService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync|specialUse"
-             />
-        -->
-        <!-- End AppMonitorService -->
+
         <!-- MyDeviceAdminReceiver -->
         <receiver
             android:name=".access.DeviceAdminReceiver"
@@ -234,11 +226,14 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-
+        <!-- AppMonitorService -->
         <service android:name=".services.AppMonitorService"
             android:exported="false"/>
         <service android:name=".services.LockOverlayService"
             android:exported="false"/>
+        <!-- End AppMonitorService -->
+
+
     </application>
 
 </manifest>
