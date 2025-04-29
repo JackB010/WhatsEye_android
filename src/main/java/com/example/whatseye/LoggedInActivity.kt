@@ -75,7 +75,7 @@ class LoggedInActivity : AppCompatActivity() {
                 """.trimIndent()
 
                 webView.evaluateJavascript(jsCode) {pageLoaded = true}
-                if(this@LoggedInActivity.pageLoaded){contentTextView.text = "hello"}
+                if(this@LoggedInActivity.pageLoaded){contentTextView.setText("hello")}
 
             }
         }

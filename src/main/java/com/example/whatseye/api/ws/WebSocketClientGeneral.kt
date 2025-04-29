@@ -1,31 +1,45 @@
 package com.example.whatseye.api.ws
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
+import android.location.LocationManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import okhttp3.*
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.*
 
-class WebSocketClientGeneral(private val context: Context, url: String) {
+class WebSocketClientGeneral(private val context: Context, private val url: String) {
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .readTimeout(0, TimeUnit.MILLISECONDS) // Disable timeout for long-lived connections
+        .build()
     private var webSocket: WebSocket? = null
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+    private var isReconnecting = false
+    private val reconnectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var retryCount = 0
+    private val maxRetries = 5
+    private val baseDelayMs = 1000L // 1 second initial delay
 
     init {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        connect()
+    }
+
+    private fun connect() {
         val request = Request.Builder().url(url).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
+                retryCount = 0 // Reset retry count on successful connection
                 // WebSocket is open
             }
 
@@ -35,13 +49,32 @@ class WebSocketClientGeneral(private val context: Context, url: String) {
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 webSocket.close(1000, null)
+                scheduleReconnect()
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 t.printStackTrace()
+                if (!isReconnecting) {
+                    scheduleReconnect()
+                }
             }
         })
     }
+
+    private fun scheduleReconnect() {
+        if (isReconnecting || retryCount >= maxRetries) return
+
+        isReconnecting = true
+        val delay = baseDelayMs * (1 shl retryCount) // Exponential backoff: 1s, 2s, 4s, 8s, etc.
+
+        reconnectScope.launch {
+            delay(delay)
+            retryCount++
+            connect()
+            isReconnecting = false
+        }
+    }
+
 
     private fun handleIncomingMessage(text: String) {
         val jsonObject = JSONObject(text)
@@ -63,40 +96,58 @@ class WebSocketClientGeneral(private val context: Context, url: String) {
     }
 
     private fun handleLocationRequest() {
-        if (checkLocationPermission()) {
-            getLastLocation()
-
+        if (hasLocationPermission()) {
+            if (isLocationEnabled()) {
+                getLastLocation()
+            } else {
+                 sendLocationError("GPS_OFF")
+            }
         } else {
-            sendLocationError("Location permission denied")
+            sendLocationError("NO_PERMISSION")
         }
     }
 
-    private fun checkLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
+    private fun hasLocationPermission(): Boolean {
+        val finePermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
+
+        val coarsePermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        return finePermission || coarsePermission
     }
 
-    private fun getLastLocation() {
-        if (checkLocationPermission()) {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        sendLocationData(it)
-                    } ?: run {
-                        sendLocationError("Location not available")
-
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    sendLocationError(exception.localizedMessage ?: "Location request failed")
-
-                }
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            locationManager.isLocationEnabled
+        } else {
+            val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            val isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+            isGpsEnabled || isNetworkEnabled
         }
     }
 
-    // ✅ FIXED: Send location in the format Django expects
+    @SuppressLint("MissingPermission")
+    private fun getLastLocation() {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                location?.let {
+                    sendLocationData(it)
+                } ?: run {
+                    sendLocationError("Location not available")
+                }
+            }
+            .addOnFailureListener { exception ->
+                sendLocationError(exception.localizedMessage ?: "Location request failed")
+            }
+    }
+
+
     private fun sendLocationData(location: Location) {
         val locationData = JSONObject().apply {
             put("lat", location.latitude)
@@ -116,7 +167,7 @@ class WebSocketClientGeneral(private val context: Context, url: String) {
     private fun sendLocationError(errorMessage: String) {
         val errorJson = JSONObject().apply {
             put("type", "LOCATION_ERROR")
-            put("message", errorMessage)
+            put("error", errorMessage)
         }.toString()
 
         webSocket?.send(errorJson)
@@ -142,7 +193,4 @@ class WebSocketClientGeneral(private val context: Context, url: String) {
         webSocket?.send(confirmationMessage)
     }
 
-    fun close() {
-        webSocket?.close(1000, null)
-    }
 }

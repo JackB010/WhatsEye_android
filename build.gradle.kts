@@ -78,6 +78,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
     implementation("com.auth0.android:jwtdecode:2.0.2")
+
     // WebSocket library
 
 

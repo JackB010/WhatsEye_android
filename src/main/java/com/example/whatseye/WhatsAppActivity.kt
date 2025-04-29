@@ -1,89 +1,118 @@
 package com.example.whatseye
 
-import android.content.Intent
 import android.os.Bundle
 import android.webkit.CookieManager
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
-import android.webkit.WebSettings
 
 class WhatsAppActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private var pageLoaded: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_whatsapp)
 
+        initializeWebView()
+
+        // Enable and restore cookies
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        restoreCookies()
+
+        // Load WhatsApp Web
+        webView.loadUrl("https://web.whatsapp.com/")
+    }
+
+    private fun initializeWebView() {
         webView = findViewById(R.id.webview)
-        // Enable DOM storage
-        webView.settings.domStorageEnabled = true
-        // Setup cache mode (optional)
-        webView.settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+        val settings = webView.settings
 
-        // Set the user agent to a desktop browser (this is a Chrome user agent)
-        val newUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        webView.settings.userAgentString = newUserAgent
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = true
 
-        // Set a WebViewClient to handle loading within the WebView
+        // Desktop User-Agent
+        val desktopUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.62 Safari/537.36"
+        settings.userAgentString = desktopUserAgent
+
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                if (!url.isNullOrEmpty()) {
 
-                // Check if cookies are set after the page is loaded
-                val cookieManager = CookieManager.getInstance()
-                val cookies = cookieManager.getCookie(url)
+                    waitForElementToLoad("wa-popovers-bucket") {
+                        // ✅ Element is loaded — WhatsApp UI is ready
+                        saveCookies(url ?: "")
+                        webView.evaluateJavascript("""(()=>{
+                            btn = document.querySelectorAll('[role="button"]')
+                            btn[btn.length-1].click()
+                            })();""".trimIndent(), null)
+                    }
 
-                // Save cookies to SharedPreferences
-                saveCookies(cookies)
-//                webView.evaluateJavascript("""(()=>{const a = document.querySelector("span[data-icon='new-chat-outline']");
-//                                                if (a) a.click();})();""".trimIndent()){}
-                // Check if the expected cookies for WhatsApp are present
-                    // Start the LoggedInActivity
-                 /*   val intent = Intent(this@WhatsAppActivity, LoggedInActivity::class.java)
-                    intent.putExtra("cookies", cookies)
-                    startActivity(intent)
-                    finish()*/ // Optionally call finish() to close MainActivity
+                    //saveCookies(url)
 
+
+                }
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                // Load the URL in the same WebView
-                view?.loadUrl(url ?: "")
+                url?.let { view?.loadUrl(it) }
                 return true
             }
         }
+    }
+    private fun waitForElementToLoad(
+        elementId: String,
+        maxRetries: Int = 20,
+        delayMillis: Long = 1000,
+        onLoaded: () -> Unit
+    ) {
+        if (maxRetries <= 0) return
 
-        // Load the WhatsApp Web URL
-        webView.loadUrl("https://web.whatsapp.com")
+        val js = """
+        (function() {
+            return document.getElementById("$elementId") !== null;
+        })();
+    """.trimIndent()
 
-        // Ensure cookies are accepted
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-
-        // Restore cookies if available
-        restoreCookies()
+        webView.evaluateJavascript(js) { result ->
+            val isLoaded = result.toBooleanStrictOrNull() ?: false
+            if (isLoaded) {
+                onLoaded()
+            } else {
+                webView.postDelayed({
+                    waitForElementToLoad(elementId, maxRetries - 1, delayMillis, onLoaded)
+                }, delayMillis)
+            }
+        }
     }
 
-    private fun saveCookies(cookies: String?) {
-        // Save cookies to SharedPreferences
-        val sharedPreferences = getSharedPreferences("whatsapp_prefs", MODE_PRIVATE)
-        sharedPreferences.edit().putString("whatsapp_cookies", cookies).apply()
+
+    private fun saveCookies(url: String) {
+        val cookieManager = CookieManager.getInstance()
+        val cookies = cookieManager.getCookie(url)
+        if (cookies != null) {
+            val sharedPreferences = getSharedPreferences("whatsapp_prefs", MODE_PRIVATE)
+            sharedPreferences.edit().putString("whatsapp_cookies", cookies).apply()
+        }
     }
 
     private fun restoreCookies() {
-        // Restore cookies from SharedPreferences
         val sharedPreferences = getSharedPreferences("whatsapp_prefs", MODE_PRIVATE)
         val savedCookies = sharedPreferences.getString("whatsapp_cookies", null)
-        if (savedCookies != null) {
+        if (!savedCookies.isNullOrEmpty()) {
             val cookieManager = CookieManager.getInstance()
             cookieManager.setCookie("https://web.whatsapp.com", savedCookies)
         }
     }
 
     override fun onBackPressed() {
-        // Allow the user to navigate back within the WebView
         if (webView.canGoBack()) {
             webView.goBack()
         } else {

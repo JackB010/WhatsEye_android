@@ -6,31 +6,101 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.*
+import org.json.JSONObject
 
 class WebSocketClientNotification {
     private var webSocket: WebSocket? = null
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .readTimeout(0, TimeUnit.MILLISECONDS)
+        .build()
     private val gson = Gson()
+    private var url: String? = null
+    private var isReconnecting = false
+    private val reconnectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var retryCount = 0
+    private val maxRetries = 5
+    private val baseDelayMs = 1000L // 1 second initial delay
 
+    @Synchronized
     fun initWebSocket(url: String) {
-        val request = Request.Builder().url(url).build()
-        val listener = WebSocketListener()
-        webSocket = client.newWebSocket(request, listener)
+        if (this.url == url && webSocket != null) {
+            // Already connected to the same URL
+            return
+        }
+
+        disconnect() // Disconnect any existing connection
+        this.url = url
+        connect()
+    }
+
+    @Synchronized
+    private fun connect() {
+        url?.let {
+            val request = Request.Builder().url(it).build()
+            val listener = WebSocketListener()
+            webSocket = client.newWebSocket(request, listener)
+        }
     }
 
     fun sendNotification(notificationData: NotificationData) {
-        val json = gson.toJson(notificationData)
-        webSocket?.send(json)
+        val message = JSONObject().apply {
+            put("type", "NOTIFICATION")
+            put("notification", JSONObject(gson.toJson(notificationData)))
+        }.toString()
+        webSocket?.send(message)
+    }
+
+    @Synchronized
+    fun disconnect() {
+        reconnectScope.coroutineContext.cancelChildren() // Cancel reconnection attempts
+        webSocket?.close(1000, "Client disconnected")
+        webSocket = null
+    }
+
+    private fun scheduleReconnect() {
+        if (isReconnecting || retryCount >= maxRetries) return
+
+        isReconnecting = true
+        val delay = baseDelayMs * (1 shl retryCount)
+
+        reconnectScope.launch {
+            delay(delay)
+            retryCount++
+            connect()
+            isReconnecting = false
+        }
     }
 
     inner class WebSocketListener : okhttp3.WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            // Handle connection opened
+            retryCount = 0
+            // Connection established
+        }
+
+        override fun onMessage(webSocket: WebSocket, text: String) {
+            try {
+                val notification = gson.fromJson(text, NotificationData::class.java)
+                // Handle the incoming notification
+            } catch (e: Exception) {
+                // Handle JSON parse errors
+            }
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            // Handle failure, implement reconnection logic here
+            if (!isReconnecting) {
+                scheduleReconnect()
+            }
+        }
+
+        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            webSocket.close(1000, null)
+            scheduleReconnect()
+        }
+
+        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            // Connection closed
         }
     }
 }
-
