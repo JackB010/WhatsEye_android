@@ -161,10 +161,7 @@
         <activity
             android:name=".access.FileAccessPermissionActivity"
             android:exported="true" />
-        <activity
-            android:name=".lock.LockScreenActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" /> <!-- End Access -->
+       <!-- End Access -->
         <!-- End Activities -->
         <!-- Services -->
 
@@ -199,15 +196,13 @@
         <!-- MyAccessibilityService -->
         <service
             android:name=".services.AccessibilityService"
-            android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            tools:ignore="WrongManifestParent">
+            android:exported="false"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
-
             <meta-data
-                android:name="android.accessibility service"
+                android:name="android.accessibility.service"
                 android:resource="@xml/accessibility_service_config" />
         </service> <!-- End MyAccessibilityService -->
         <!-- NotificationListenerService -->

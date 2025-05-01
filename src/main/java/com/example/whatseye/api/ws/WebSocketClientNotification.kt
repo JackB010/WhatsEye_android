@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.*
 import org.json.JSONObject
 
-class WebSocketClientNotification {
+class WebSocketClientNotification private constructor() {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS)
@@ -22,6 +22,17 @@ class WebSocketClientNotification {
     private var retryCount = 0
     private val maxRetries = 5
     private val baseDelayMs = 1000L // 1 second initial delay
+
+    companion object {
+        @Volatile
+        private var instance: WebSocketClientNotification? = null
+
+        fun getInstance(): WebSocketClientNotification {
+            return instance ?: synchronized(this) {
+                instance ?: WebSocketClientNotification().also { instance = it }
+            }
+        }
+    }
 
     @Synchronized
     fun initWebSocket(url: String) {
@@ -73,6 +84,11 @@ class WebSocketClientNotification {
         }
     }
 
+    fun close() {
+        webSocket?.close(1000, "Normal Closure")
+        webSocket = null
+    }
+
     inner class WebSocketListener : okhttp3.WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
             retryCount = 0
@@ -80,12 +96,7 @@ class WebSocketClientNotification {
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            try {
-                val notification = gson.fromJson(text, NotificationData::class.java)
-                // Handle the incoming notification
-            } catch (e: Exception) {
-                // Handle JSON parse errors
-            }
+            // Handle incoming messages
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {

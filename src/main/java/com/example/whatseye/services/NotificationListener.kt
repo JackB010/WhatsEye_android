@@ -10,7 +10,7 @@ import com.example.whatseye.dataType.data.NotificationData
 
 class NotificationListener : NotificationListenerService() {
 
-    private val webSocketManager = WebSocketClientNotification()
+    private val webSocketManager = WebSocketClientNotification.getInstance()
     private var lastNotificationHash: Int? = null
     private var lastNotificationTime: Long = 0
 
@@ -21,7 +21,7 @@ class NotificationListener : NotificationListenerService() {
         val userId = jwtManager.getUserId()
         val token = jwtManager.getAccessJwt()
 
-        val wsUrl = "ws://192.168.128.116:8000/ws/notifications/$userId/?token=$token"
+        val wsUrl = "ws://192.168.181.116:8000/ws/notifications/$userId/?token=$token"
         webSocketManager.initWebSocket(wsUrl)
     }
 
@@ -50,7 +50,8 @@ class NotificationListener : NotificationListenerService() {
         val notificationData = NotificationData(
             title = title,
             content = content,
-            timestamp = timestamp
+            timestamp = timestamp,
+            type= "message"
         )
 
         Log.d("NotificationListener", "Sending notification: $notificationData")

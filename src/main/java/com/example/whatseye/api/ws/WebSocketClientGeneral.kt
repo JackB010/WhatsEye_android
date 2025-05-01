@@ -9,6 +9,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import androidx.core.content.ContextCompat
+import com.example.whatseye.api.managers.BadWordsManager
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
@@ -26,20 +27,24 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
     private var webSocket: WebSocket? = null
     private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var isReconnecting = false
+    private var isClosed = false // Flag to track intentional closure
     private val reconnectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var retryCount = 0
-    private val maxRetries = 5
     private val baseDelayMs = 1000L // 1 second initial delay
+    private val maxDelayMs = 15000L // Cap at 15 seconds
 
     init {
         connect()
     }
 
     private fun connect() {
+        if (isClosed || webSocket != null) return // Avoid connecting if closed or already connected
+
         val request = Request.Builder().url(url).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 retryCount = 0 // Reset retry count on successful connection
+                isReconnecting = false
                 // WebSocket is open
             }
 
@@ -48,13 +53,16 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                webSocket.close(1000, null)
-                scheduleReconnect()
+                cleanupWebSocket()
+                if (!isClosed) {
+                    scheduleReconnect()
+                }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 t.printStackTrace()
-                if (!isReconnecting) {
+                cleanupWebSocket()
+                if (!isClosed && !isReconnecting) {
                     scheduleReconnect()
                 }
             }
@@ -62,19 +70,26 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
     }
 
     private fun scheduleReconnect() {
-        if (isReconnecting || retryCount >= maxRetries) return
+        if (isClosed || isReconnecting) return
 
         isReconnecting = true
-        val delay = baseDelayMs * (1 shl retryCount) // Exponential backoff: 1s, 2s, 4s, 8s, etc.
+        // Exponential backoff: 1s, 2s, 4s, 8s, ..., capped at maxDelayMs
+        val delay = (baseDelayMs * (1 shl retryCount.coerceAtMost(10))).coerceAtMost(maxDelayMs)
 
         reconnectScope.launch {
             delay(delay)
-            retryCount++
-            connect()
-            isReconnecting = false
+            if (!isClosed) {
+                retryCount++
+                connect()
+                isReconnecting = false
+            }
         }
     }
 
+    private fun cleanupWebSocket() {
+        webSocket?.close(1000, "Cleanup Closure")
+        webSocket = null
+    }
 
     private fun handleIncomingMessage(text: String) {
         val jsonObject = JSONObject(text)
@@ -92,7 +107,25 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             "GET_LOCATION" -> {
                 handleLocationRequest()
             }
+            "BAD_WORDS" ->{
+                val badWordsArray = jsonObject.getJSONArray("bad_words")
+                val badWordsList = mutableListOf<String>()
+                for (i in 0 until badWordsArray.length()) {
+                    badWordsList.add(badWordsArray.getString(i))
+                }
+                val badWordsManager = BadWordsManager(context)
+                badWordsManager.saveBadWords(badWordsList)
+                sendBadWordsConfirmation()
+            }
         }
+    }
+
+    private fun sendBadWordsConfirmation() {
+        val confirmationMessage = JSONObject().apply {
+            put("type", "CONFIRM_BAD_WORDS")
+        }.toString()
+
+        webSocket?.send(confirmationMessage)
     }
 
     private fun handleLocationRequest() {
@@ -100,7 +133,7 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             if (isLocationEnabled()) {
                 getLastLocation()
             } else {
-                 sendLocationError("GPS_OFF")
+                sendLocationError("GPS_OFF")
             }
         } else {
             sendLocationError("NO_PERMISSION")
@@ -147,7 +180,6 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             }
     }
 
-
     private fun sendLocationData(location: Location) {
         val locationData = JSONObject().apply {
             put("lat", location.latitude)
@@ -193,4 +225,10 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         webSocket?.send(confirmationMessage)
     }
 
+    fun close() {
+        isClosed = true
+        reconnectScope.cancel() // Cancel any pending reconnect attempts
+        cleanupWebSocket()
+        client.dispatcher.executorService.shutdown() // Clean up OkHttp resources
+    }
 }
