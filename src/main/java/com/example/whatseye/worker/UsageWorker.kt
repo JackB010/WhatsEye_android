@@ -41,6 +41,8 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
             val currentUsageSeconds = getHourUsage(now.timeInMillis)
 
             sendDataToServer(UsageData(currentDate,currentHour,currentUsageSeconds))
+            dbHelper.insertOrUpdateUsageData(currentDate, currentHour , currentUsageSeconds, 1 )
+
             Log.d("sendDataToServer", "sendDataToServer")
 
             val previous = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, -1) }
@@ -49,18 +51,18 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
             val previousUsageSeconds  = getHourUsage(previous.timeInMillis)
 
             // Save locally with (date, hour)
-            dbHelper.insertOrUpdateUsageData(previousDate, previousHour , previousUsageSeconds )
+            dbHelper.insertOrUpdateUsageData(previousDate, previousHour , previousUsageSeconds, 0 )
 
             if (isInternetAvailable(applicationContext)) {
                 val unsent = dbHelper.getUnsent()
                 for (data in unsent) {
                     delay(500)
                     if (sendDataToServer(data)) {
-                        dbHelper.markAsSent(data.date, data.hour)
+                        dbHelper.insertOrUpdateUsageData(data.date, data.hour , data.usage_seconds, 1)
                     }
                 }
             }
-
+            dbHelper.close()
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()

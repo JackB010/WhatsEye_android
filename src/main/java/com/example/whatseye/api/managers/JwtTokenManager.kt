@@ -5,9 +5,8 @@ import android.content.SharedPreferences
 
 class JwtTokenManager(context: Context) {
     // 1. Get SharedPreferences through context
-    //authJWT
     private val sharedPrefs: SharedPreferences =
-        context.getSharedPreferences("OK", Context.MODE_PRIVATE)
+        context.getSharedPreferences("authJWT", Context.MODE_PRIVATE)
 
     // 2. Remove 'override' and 'suspend' (SharedPreferences operations are synchronous)
     fun saveAccessJwt(token: String) {
@@ -19,6 +18,14 @@ class JwtTokenManager(context: Context) {
     fun setIsLogin(isLogin: Boolean){
         sharedPrefs.edit().putBoolean("isLogin", isLogin).apply()
     }
+
+    fun setIsLoginWhatsApp(isLogin: Boolean){
+        sharedPrefs.edit().putBoolean("isLoginWhatsApp", isLogin).apply()
+    }
+    fun setIsLoginWhatsApp2(isLogin: Boolean){
+        sharedPrefs.edit().putBoolean("isLoginWhatsApp2", isLogin).apply()
+    }
+
     fun getAccessJwt(): String? {
         return sharedPrefs.getString("ACCESS", null)
     }
@@ -39,6 +46,8 @@ class JwtTokenManager(context: Context) {
 
     fun getRefreshJwt(): String? = sharedPrefs.getString("REFRESH", null)
     fun getIsLogin(): Boolean = sharedPrefs.getBoolean("isLogin", false)
+    fun getIsLoginWhatsApp(): Boolean = sharedPrefs.getBoolean("isLoginWhatsApp", false)
+    fun getIsLoginWhatsApp2(): Boolean = sharedPrefs.getBoolean("isLoginWhatsApp2", false)
 
     fun clearAllTokens() {
         sharedPrefs.edit().clear().apply()

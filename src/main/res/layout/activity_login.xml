@@ -86,43 +86,43 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:gravity="center_vertical">
 
             <com.hbb20.CountryCodePicker
                 android:id="@+id/countryCodePicker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:ccpDialog_textColor="@color/white"
                 app:ccp_defaultPhoneCode="1"
                 app:ccp_showNameCode="false"
-                app:ccp_textSize="16sp"
-                app:ccpDialog_textColor="@color/white"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp" />
+                app:ccp_textSize="16sp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/phoneInputLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:hintEnabled="true"
-                app:hintAnimationEnabled="true"
-                app:hintTextColor="@color/teal_700"
                 android:hint="@string/phone_number"
-                app:boxStrokeColor="@color/teal_700"
-                android:textColor="@color/black"
-                app:boxBackgroundColor="@android:color/transparent"
+                app:boxStrokeWidth="1.5dp"
                 app:startIconDrawable="@drawable/ic_phone"
-                app:startIconTint="@color/primary">
+                app:hintTextColor="@color/teal_700"
+                app:startIconTint="@color/teal_700"
+                app:boxStrokeColor="@color/teal_700">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPhoneLogin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-
                     android:inputType="phone"
-                    android:padding="12dp" />
+                    android:padding="12dp"
+                    android:textColor="@color/black"
+                    android:maxLength="14"
+                    android:textSize="16sp" />
+
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
     </LinearLayout>
@@ -167,17 +167,6 @@
         android:backgroundTint="@color/primary_dark"
         app:cornerRadius="8dp"
         app:iconGravity="textStart" />
-    <!-- Forgot Password Link -->
-    <TextView
-        android:id="@+id/forgotPasswordText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:text="@string/forgot_password"
-        android:textColor="@color/primary_dark"
-        android:gravity="end"
-        android:layout_marginBottom="16dp"
-        android:clickable="true"
-        android:layout_marginTop="20dp"/>
+
 
 </LinearLayout>

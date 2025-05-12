@@ -12,24 +12,33 @@ class PasskeyManager(context: Context) {
 
     // Key used to store the passkey in SharedPreferences
     private val PASSKEY_KEY = "passkey"
+    private val PASSKEY_KEY_STATUS = "passkeystatus"
 
+
+    private fun saveStatus(status: Boolean){
+        sharedPreferences.edit().putBoolean(PASSKEY_KEY_STATUS, status).apply()
+    }
+
+    fun getStatus() :Boolean{
+       return sharedPreferences.getBoolean(PASSKEY_KEY_STATUS, false)
+    }
     /**
      * Save the passkey in SHA-256 format.
      */
     fun savePasskey(passkey: String) {
         val hashedPasskey = hashWithSHA512(passkey)
         sharedPreferences.edit().putString(PASSKEY_KEY, hashedPasskey).apply()
+        saveStatus(true)
     }
 
     fun savePasskeyWS(hashedPasskey: String) {
         sharedPreferences.edit().putString(PASSKEY_KEY, hashedPasskey).apply()
     }
-
     /**
      * Get the stored passkey in SHA-256 format.
      */
-    fun getPasskey(): String? {
-        return sharedPreferences.getString(PASSKEY_KEY, null)
+    private fun getPasskey(): String {
+        return sharedPreferences.getString(PASSKEY_KEY, "").toString()
     }
 
     /**
@@ -46,5 +55,8 @@ class PasskeyManager(context: Context) {
      */
     fun isPasskeyValid(passkey: String): Boolean {
         return hashWithSHA512(passkey) == getPasskey()
+    }
+    fun clearPassKey() {
+        sharedPreferences.edit().clear().apply()
     }
 }

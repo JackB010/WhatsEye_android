@@ -1,67 +1,46 @@
-package com.example.whatseye.services
-
-import android.annotation.SuppressLint
-import android.app.Service
+package com.example.whatseye
 import android.content.Intent
-import android.graphics.PixelFormat
-import android.os.Build
-import android.os.IBinder
-import android.text.Editable
-import android.text.TextWatcher
+import android.os.Bundle
 import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
-import android.view.animation.AnimationUtils
+import android.view.WindowManager.LayoutParams
 import android.widget.EditText
 import android.widget.LinearLayout
-import com.example.whatseye.R
+import androidx.appcompat.app.AppCompatActivity
+import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
+import com.example.whatseye.profile.UpdateProfileActivity
 import kotlinx.coroutines.*
 
-class LockOverlayService : Service() {
-    private lateinit var windowManager: WindowManager
-    private lateinit var overlayView: View
+class LockScreenActivity : AppCompatActivity() {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    @SuppressLint("InflateParams")
-    override fun onCreate() {
-        super.onCreate()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_lock_screen, null)
-
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
-                WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-            PixelFormat.TRANSLUCENT
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Inflate your layout (should fill the whole activity)
+        setContentView(R.layout.overlay_lock_screen)
+        window.addFlags(
+            LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                    or LayoutParams.FLAG_DISMISS_KEYGUARD
+                    or LayoutParams.FLAG_KEEP_SCREEN_ON
+                    or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    or Intent.FLAG_ACTIVITY_CLEAR_TOP
         )
-
-        try {
-            windowManager.addView(overlayView, params)
-        } catch (e: Exception) {
-            stopSelf()
-            return
-        }
-
         setupPinInputsAndButton()
+    }
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_HOME, KeyEvent.KEYCODE_BACK -> true
+            else -> super.onKeyDown(keyCode, event)
+        }
     }
 
     private fun setupPinInputsAndButton() {
         val pinFields = arrayOf(
-            overlayView.findViewById<EditText>(R.id.pin1),
-            overlayView.findViewById(R.id.pin2),
-            overlayView.findViewById(R.id.pin3),
-            overlayView.findViewById(R.id.pin4),
-            overlayView.findViewById(R.id.pin5)
+            findViewById<EditText>(R.id.pin1),
+            findViewById(R.id.pin2),
+            findViewById(R.id.pin3),
+            findViewById(R.id.pin4),
+            findViewById(R.id.pin5)
         )
 
         pinFields.forEachIndexed { index, editText ->
@@ -99,24 +78,20 @@ class LockOverlayService : Service() {
         nextField: EditText?,
         previousField: EditText?,
         allFields: Array<EditText>
-    ): TextWatcher {
-        return object : TextWatcher {
+    ): android.text.TextWatcher {
+        return object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Handle input
                 if (s?.length == 1) {
                     if (checkPinFieldsFull(allFields)) validatePin(allFields)
                     else nextField?.requestFocus()
-                }
-                // Handle deletion (backspace when field is empty is handled by KeyListener)
-                else if (s.isNullOrEmpty() && before > 0) {
+                } else if (s.isNullOrEmpty() && before > 0) {
                     previousField?.requestFocus()
                 }
             }
 
-            override fun afterTextChanged(s: Editable?) {
-                // Ensure only one character per field
+            override fun afterTextChanged(s: android.text.Editable?) {
                 if (s != null && s.length > 1) {
                     currentField.setText(s.subSequence(s.length - 1, s.length))
                     currentField.setSelection(1)
@@ -130,28 +105,38 @@ class LockOverlayService : Service() {
     }
 
     private fun startFieldAnimation(field: EditText) {
-        val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_pulse)
+        val scaleAnimation = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.scale_pulse)
         field.startAnimation(scaleAnimation)
     }
 
     private fun validatePin(pinFields: Array<EditText>) {
         val pin = pinFields.joinToString("") { it.text.toString() }
-        val passkeyManager =   PasskeyManager(this@LockOverlayService)
-        if (passkeyManager.isPasskeyValid(pin)) { // Replace with actual validation logic
-            stopSelf()
+        val passkeyManager = PasskeyManager(this)
+        val packageName = intent.getStringExtra("packageName") ?: ""
+        if (passkeyManager.isPasskeyValid(pin)) {
+            LockManager(this).saveLockedStatus(packageName,false)
+            val appName = applicationInfo.loadLabel(packageManager).toString()
+            if(packageName==appName){
+                val intent2 = Intent(this, UpdateProfileActivity::class.java).apply {
+                    putExtra("packageName", appName)
+                }
+                startActivity(intent2)
+            }
+            finish()
+
         } else {
             showError(pinFields)
         }
     }
 
     private fun showError(pinFields: Array<EditText>) {
-        val pinContainer = overlayView.findViewById<LinearLayout>(R.id.pinContainer)
-        pinContainer.startAnimation(AnimationUtils.loadAnimation(this@LockOverlayService, R.anim.shake))
+        val pinContainer = findViewById<LinearLayout>(R.id.pinContainer)
+        pinContainer.startAnimation(android.view.animation.AnimationUtils.loadAnimation(this, R.anim.shake))
         pinFields.forEach {
             it.setBackgroundResource(R.drawable.pin_input_background_error)
         }
         coroutineScope.launch {
-           delay(500)
+            delay(500)
             pinFields.forEach {
                 it.setBackgroundResource(R.drawable.pin_input_background_default)
                 it.text.clear()
@@ -163,10 +148,5 @@ class LockOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         coroutineScope.cancel()
-        try {
-            windowManager.removeView(overlayView)
-        } catch (e: Exception) {
-            // Handle view removal failure gracefully
-        }
     }
 }

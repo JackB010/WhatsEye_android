@@ -1,27 +1,29 @@
 package com.example.whatseye.api.ws
 
+import android.content.Context
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.dataType.data.NotificationData
 import com.google.gson.Gson
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.WebSocket
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.*
+import okhttp3.*
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class WebSocketClientNotification private constructor() {
+
     private var webSocket: WebSocket? = null
+    private var url: String? = null
+    private var isClosed = false
+    private var isReconnecting = false
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .build()
     private val gson = Gson()
-    private var url: String? = null
-    private var isReconnecting = false
     private val reconnectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     private var retryCount = 0
-    private val maxRetries = 5
-    private val baseDelayMs = 1000L // 1 second initial delay
+    private val baseDelayMs = 1000L
+    private val maxDelayMs = 15000L
 
     companion object {
         @Volatile
@@ -35,24 +37,90 @@ class WebSocketClientNotification private constructor() {
     }
 
     @Synchronized
-    fun initWebSocket(url: String) {
-        if (this.url == url && webSocket != null) {
-            // Already connected to the same URL
+    fun initialize(context: Context) {
+        val jwtManager = JwtTokenManager(context)
+        val userId = jwtManager.getUserId()
+        val token = jwtManager.getAccessJwt()
+
+        if (userId.isNullOrEmpty() || token.isNullOrEmpty()) {
+            disconnect()
             return
         }
 
-        disconnect() // Disconnect any existing connection
-        this.url = url
+        val baseUrl = "ws://192.168.89.116:8000"
+        val newUrl = "$baseUrl/ws/notifications/$userId/?token=$token"
+
+        if (newUrl == url) return
+
+       // disconnect() // Ensure previous connection is cleaned up
+        url = newUrl
+        isClosed = false
         connect()
     }
 
     @Synchronized
+    fun disconnect() {
+        isClosed = true
+        reconnectScope.coroutineContext.cancelChildren()
+        cleanupWebSocket()
+        url = null
+        retryCount = 0
+        isReconnecting = false
+    }
+
     private fun connect() {
-        url?.let {
-            val request = Request.Builder().url(it).build()
-            val listener = WebSocketListener()
-            webSocket = client.newWebSocket(request, listener)
+        if (isClosed || webSocket != null || url == null) return
+
+        val request = Request.Builder().url(url!!).build()
+        webSocket = client.newWebSocket(request, object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                retryCount = 0
+                isReconnecting = false
+                println("WebSocket connected")
+            }
+
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                handleIncomingMessage(text)
+            }
+
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                println("WebSocket closing: $code - $reason")
+                cleanupWebSocket()
+                if (!isClosed) scheduleReconnect()
+            }
+
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                t.printStackTrace()
+                cleanupWebSocket()
+                if (!isClosed && !isReconnecting) scheduleReconnect()
+            }
+        })
+    }
+
+    private fun scheduleReconnect() {
+        if (isClosed || isReconnecting) return
+
+        isReconnecting = true
+        val delay = (baseDelayMs * (1L shl retryCount.coerceAtMost(10))).coerceAtMost(maxDelayMs)
+
+        reconnectScope.launch {
+            delay(delay)
+            if (!isClosed) {
+                retryCount++
+                connect()
+                isReconnecting = false
+            }
         }
+    }
+
+    private fun cleanupWebSocket() {
+        webSocket?.close(1000, "Cleanup Closure")
+        webSocket = null
+    }
+
+    private fun handleIncomingMessage(text: String) {
+        println("WebSocket message: $text")
+        // Parse and handle your message here
     }
 
     fun sendNotification(notificationData: NotificationData) {
@@ -61,57 +129,5 @@ class WebSocketClientNotification private constructor() {
             put("notification", JSONObject(gson.toJson(notificationData)))
         }.toString()
         webSocket?.send(message)
-    }
-
-    @Synchronized
-    fun disconnect() {
-        reconnectScope.coroutineContext.cancelChildren() // Cancel reconnection attempts
-        webSocket?.close(1000, "Client disconnected")
-        webSocket = null
-    }
-
-    private fun scheduleReconnect() {
-        if (isReconnecting || retryCount >= maxRetries) return
-
-        isReconnecting = true
-        val delay = baseDelayMs * (1 shl retryCount)
-
-        reconnectScope.launch {
-            delay(delay)
-            retryCount++
-            connect()
-            isReconnecting = false
-        }
-    }
-
-    fun close() {
-        webSocket?.close(1000, "Normal Closure")
-        webSocket = null
-    }
-
-    inner class WebSocketListener : okhttp3.WebSocketListener() {
-        override fun onOpen(webSocket: WebSocket, response: Response) {
-            retryCount = 0
-            // Connection established
-        }
-
-        override fun onMessage(webSocket: WebSocket, text: String) {
-            // Handle incoming messages
-        }
-
-        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            if (!isReconnecting) {
-                scheduleReconnect()
-            }
-        }
-
-        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-            webSocket.close(1000, null)
-            scheduleReconnect()
-        }
-
-        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            // Connection closed
-        }
     }
 }

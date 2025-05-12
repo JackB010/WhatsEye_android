@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white"
+    android:gravity="center">
+
+    <!-- Instruction Text -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/please_follow_these_steps_to_link_whatsapp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/_1_click_on_the_whatsapp_notification_2_enter_the_code_from_the_whatseye_notification"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Image View for the Screenshot -->
+
+    <!-- Try Link Again Button -->
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:layout_marginBottom="20dp"
+        android:contentDescription="WhatsApp Notification Screenshot"
+        android:scaleType="centerCrop"
+        android:src="@drawable/whatsapp_notification" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/tryLinkAgainButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/try_link_again"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/primary_dark"
+        app:cornerRadius="8dp"
+        app:iconGravity="textStart" />
+
+</LinearLayout>

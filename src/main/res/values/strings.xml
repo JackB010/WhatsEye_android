@@ -40,6 +40,31 @@
     <string name="digit_3">Third digit</string>
     <string name="digit_4">Fourth digit</string>
     <string name="digit_5">Fifth digit</string>
+    <string name="loading">Chargement...</string>
+    <string name="try_link_again">Try Link Again</string>
+    <string name="please_follow_these_steps_to_link_whatsapp">Please follow these steps to link WhatsApp:</string>
+    <string name="_1_click_on_the_whatsapp_notification_2_enter_the_code_from_the_whatseye_notification">1. Click on the WhatsApp notification.\n2. Enter the code from the WhatsEye notification.</string>
+    <string name="schedule_list">Liste des horaires</string>
+    <string name="settings">Settings</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="email">Email</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="phone_locked">Lock WhatsApp</string>
+    <string name="change_pin">Change Pin</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="previous_date">Previous Date</string>
+    <string name="next_date">Next Date</string>
+    <string name="placeholder_name">John Doe </string>
+    <string name="placeholder_username">aza</string>
+    <string name="placeholder_email">user@example.com</string>
+    <string name="placeholder_phone">+1 234 567 890</string>
+    <string name="placeholder_date">September 28, 2023</string>
+    <string name="logout">logout</string>
+    <string name="agree_and_continue">Agree And Continue</string>
+    <string name="Disclaimer">You will log in to WhatsApp Web on your phone. We have no control over your account.</string>
 
     <string-array name="gender_options">
         <item>Male</item>

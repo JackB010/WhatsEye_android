@@ -3,11 +3,9 @@ package com.example.whatseye.access
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
-import com.example.whatseye.MainActivity
 import com.google.android.material.button.MaterialButton
 import com.example.whatseye.R
 
@@ -37,19 +35,14 @@ class UsageAccessPermissionActivity : AppCompatActivity() {
     }
 
     private fun hasUsageAccessPermission(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val packageName = packageName
-            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-            // Get the usage stats for the last 1 day
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                System.currentTimeMillis() - 1000 * 3600 * 24,
-                System.currentTimeMillis()
-            )
+        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val usageStatsList = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            System.currentTimeMillis() - 1000 * 3600 * 24,
+            System.currentTimeMillis()
+        )
 
-            return usageStatsList != null && usageStatsList.isNotEmpty()
-        }
-        return true // For devices below Lollipop, we return true since permission is not applicable.
+        return usageStatsList != null && usageStatsList.isNotEmpty()
     }
 
     private fun updateStatus() {

@@ -1,5 +1,6 @@
 package com.example.whatseye.access
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Vibrator
 import android.text.Editable
@@ -10,11 +11,12 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.whatseye.MainActivity
 import com.example.whatseye.R
 import com.example.whatseye.api.managers.PasskeyManager
 import kotlinx.coroutines.*
 
-class LockScreenActivity : AppCompatActivity() {
+class LockScreenNewPINActivity : AppCompatActivity() {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private lateinit var vibrator: Vibrator
     private var prevPassKey: String? = null
@@ -111,7 +113,7 @@ class LockScreenActivity : AppCompatActivity() {
     private fun validatePin(pinFields: Array<EditText>) {
         val pin = pinFields.joinToString("") { it.text.toString() }
         if (pin.length != 5) {
-            showError(pinFields, "PIN must be 5 digits")
+            showError(pinFields)
             return
         }
 
@@ -128,12 +130,14 @@ class LockScreenActivity : AppCompatActivity() {
                 try {
                     val passkeyManager = PasskeyManager(this)
                     passkeyManager.savePasskey(pin)
-                    finish()
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear the stack
+                    startActivity(intent)
                 } catch (e: Exception) {
-                    showError(pinFields, "Failed to save PIN. Please try again.")
+                    showError(pinFields)
                 }
             } else {
-                showError(pinFields, "PINs do not match")
+                showError(pinFields)
                 isConfirmMode = false
                 tempPin = null
                 updatePromptText()
@@ -141,7 +145,7 @@ class LockScreenActivity : AppCompatActivity() {
         }
     }
 
-    private fun showError(pinFields: Array<EditText>, errorMessage: String = "Incorrect PIN") {
+    private fun showError(pinFields: Array<EditText>) {
         val pinContainer = findViewById<LinearLayout>(R.id.pinContainer)
         pinContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake))
         pinFields.forEach {

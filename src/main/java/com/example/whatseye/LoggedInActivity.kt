@@ -1,6 +1,7 @@
 package com.example.whatseye
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.webkit.CookieManager
 import android.webkit.WebSettings
@@ -25,9 +26,15 @@ class LoggedInActivity : AppCompatActivity() {
     private var clicked = false
 
 
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//            WebView.setDataDirectorySuffix("WhatsApp2") // webview2 for the second one
+//        }
         super.onCreate(savedInstanceState)
         setContentView(R.layout.logged_in_activity)
+        //setDataDirectorySuffix("whatsapp1")
+
 
         initializeViews()
         setupWebView()
@@ -54,11 +61,13 @@ class LoggedInActivity : AppCompatActivity() {
         btnGetContact = findViewById(R.id.btngetContact)
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint("SetJavaScriptEnabled", "NewApi")
     private fun setupWebView() {
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
+            setSupportMultipleWindows(false)
+
             cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
             userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }

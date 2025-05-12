@@ -2,7 +2,6 @@ package com.example.whatseye.access
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
@@ -45,11 +44,7 @@ class OverlayPermissionActivity : AppCompatActivity() {
     }
 
     private fun hasOverlayPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(this)
-        } else {
-            true
-        }
+        return Settings.canDrawOverlays(this)
     }
 
     private fun updateStatus() {

@@ -1,6 +1,7 @@
 package com.example.whatseye.access
 
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -34,6 +35,11 @@ class FileAccessPermissionActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateStatus()
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     private fun requestStoragePermission() {
         if (!isStoragePermissionGranted()) {
@@ -52,6 +58,14 @@ class FileAccessPermissionActivity : AppCompatActivity() {
         return Environment.isExternalStorageManager() // Check for MANAGE_EXTERNAL_STORAGE permission
     }
 
+    @SuppressLint("NewApi")
+    private fun updateStatus() {
+        if (isStoragePermissionGranted()) {
+            val intent = Intent(this, BackgroundLocationPermissionActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
     private fun permissionGranted() {
 
     }

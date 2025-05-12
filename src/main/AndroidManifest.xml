@@ -24,13 +24,33 @@
         android:required="false" />
     <uses-feature
         android:name="android.hardware.microphone"
-        android:required="false" />
+        android:required="true" />
     <uses-feature
-        android:name="android.hardware.camera.flash"
-        android:required="false" /> <!-- <uses-feature android:glEsVersion="0x20000" android:required="true"/> -->
+        android:name="android.hardware.audio.output"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.telephony.gsm"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" />
+
+    <uses-feature android:glEsVersion="0x20000" android:required="true"/>
     <!-- uses-feature -->
     <!-- Permissions -->
     <!-- For general file access -->
+    <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="miui.permission.USE_INTERNAL_GENERAL_API" />
+    <uses-permission android:name="miui.permission.INTERACT_WITH_SYSTEM_UI" />
+
+    <uses-permission android:name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" />
+
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -74,6 +94,7 @@
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission
         android:name="android.permission.FRAME_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -82,6 +103,8 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:allowBackup="true"
@@ -100,7 +123,8 @@
         android:usesCleartextTraffic="true">
         <meta-data
             android:name="com.google.android.actions"
-            android:resource="@xml/network_security_config" />
+            android:resource="@xml/network_security_config"
+            tools:ignore="Deprecated" />
         <!-- Activities -->
         <activity
             android:name=".MainActivity"
@@ -116,27 +140,49 @@
             android:exported="true" />
         <activity
             android:name=".noLogin.LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".UsageActivity"
             android:exported="true" />
         <activity
             android:name=".noLogin.SignupActivity"
             android:exported="true" />
         <activity
-            android:name=".noLogin.ResetPasswordActivity"
-            android:exported="true" />
-        <activity
             android:name=".qrCode.CustomCaptureActivity"
             android:exported="true"
-            android:stateNotNeeded="true" /> <!-- Access -->
+            android:stateNotNeeded="true" />
+        <activity android:name=".profile.ProfileActivity" android:exported="true"  />
+        <activity android:name=".profile.UpdateProfileActivity" android:exported="true"  />
+        <activity android:name=".profile.AddProfileInfo" android:exported="true"  />
+        <!-- WhatsApp -->
+
         <activity
-            android:name=".WhatsAppActivity"
+            android:name=".whatsapp.WhatsAppLinkActivity"
             android:exported="true"
-            android:resizeableActivity="true" />
+            />
+
         <activity
-            android:name=".access.LockScreenActivity"
+            android:name=".whatsapp.WhatsAppLink2Activity"
+            android:exported="true"
+            android:process=":WhatsApp2"
+            />
+
+        <activity android:name=".LoggedInActivity" android:exported="true"/>
+        <activity android:name=".whatsapp.WhatsAppLinkInformActivity" android:exported="true"/>
+        <!-- WhatsApp -->
+
+        <!-- Access -->
+        <activity
+            android:name=".access.BackgroundLocationPermissionActivity"
             android:exported="true" />
+        <activity
+            android:name=".access.LockScreenNewPINActivity"
+            android:exported="true" />
+        <activity android:name=".LockScreenActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/FullScreenOverlayTheme" />
         <activity
             android:name=".access.AccessibilityPermissionActivity"
             android:exported="true" />
@@ -196,19 +242,21 @@
         <!-- MyAccessibilityService -->
         <service
             android:name=".services.AccessibilityService"
+            android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
-                android:name="android.accessibility.service"
+                android:name="android.accessibility-service"
                 android:resource="@xml/accessibility_service_config" />
         </service> <!-- End MyAccessibilityService -->
         <!-- NotificationListenerService -->
         <service
             android:name=".services.NotificationListener"
             android:label="@string/app_name"
+            android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -221,11 +269,7 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-        <!-- AppMonitorService -->
-        <service android:name=".services.AppMonitorService"
-            android:exported="false"/>
-        <service android:name=".services.LockOverlayService"
-            android:exported="false"/>
+        <!-- End AppMonitorService -->
         <!-- End AppMonitorService -->
 
 

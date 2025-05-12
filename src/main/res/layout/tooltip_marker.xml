@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal">
+
+    <!-- Tooltip bubble -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="@drawable/tooltip_bg"
+        android:padding="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvTooltip"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Arrow (outside and below the bubble) -->
+    <ImageView
+        android:id="@+id/ivPoint"
+        android:layout_width="12dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="82dp"
+        android:contentDescription="TODO"
+        android:src="@drawable/tooltip_arrow"
+        tools:ignore="ContentDescription,HardcodedText,ImageContrastCheck" />
+
+</LinearLayout>

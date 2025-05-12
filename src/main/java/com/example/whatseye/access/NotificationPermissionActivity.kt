@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -24,7 +25,6 @@ class NotificationPermissionActivity : AppCompatActivity() {
 
         buttonEnableNotifications = findViewById(R.id.buttonEnableNotifications)
 
-
         buttonEnableNotifications.setOnClickListener {
             requestNotificationPermission()
         }
@@ -40,41 +40,30 @@ class NotificationPermissionActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE
-            )== PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED && isNotificationServiceEnabled()
         } else {
-            true // For versions below Android 13, notification permission is always granted
+            isNotificationServiceEnabled()
         }
     }
 
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_CODE_NOTIFICATION_PERMISSION
-                )
-                if(ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE
-                    ) != PackageManager.PERMISSION_GRANTED){
-                    startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-
-                }
-
-            } else {
-                updateStatus()
-            }
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_CODE_NOTIFICATION_PERMISSION
+            )
         } else {
-            // For versions below Android 13, notification permission is always granted
+            openNotificationListenerSettingsIfNeeded()
+        }
+    }
+
+    private fun openNotificationListenerSettingsIfNeeded() {
+        if (!isNotificationServiceEnabled()) {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } else {
             updateStatus()
         }
     }
@@ -87,7 +76,7 @@ class NotificationPermissionActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_NOTIFICATION_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                updateStatus()
+                openNotificationListenerSettingsIfNeeded()
             } else {
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
             }
@@ -97,8 +86,15 @@ class NotificationPermissionActivity : AppCompatActivity() {
     private fun updateStatus() {
         if (hasNotificationPermission()) {
             val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)        }
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    private fun isNotificationServiceEnabled(): Boolean {
+        val pkgName = packageName
+        val enabledListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        return !TextUtils.isEmpty(enabledListeners) && enabledListeners.contains(pkgName)
     }
 
     companion object {

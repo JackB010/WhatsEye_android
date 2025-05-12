@@ -18,4 +18,26 @@
         <item name="android:maxLength">1</item>
         <item name="android:importantForAutofill" tools:ignore="NewApi">no</item>
     </style>
+
+    <style name="FullScreenOverlayTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+    <style name="CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="Divider.Horizontal" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="android:height">1dp</item>
+        <item name="android:background">@color/primary</item>
+    </style>
+    <style name="Widget.Material3.IconButton" parent="Widget.Material3.Button.TextButton.Icon">
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:padding">8dp</item>
+        <item name="shapeAppearance">@drawable/divider_horizontal</item>
+    </style>
+
 </resources>

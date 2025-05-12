@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://192.168.181.116:8000/api/"  // your Django server IP
+    private const val BASE_URL = "http://192.168.89.116:8000/api/"  // your Django server IP
 
     private lateinit var jwtTokenManager: JwtTokenManager
 
@@ -35,5 +35,6 @@ object RetrofitClient {
         .build()
 
     val controlApi: ControlApiService = AuthRetrofit.create(ControlApiService::class.java)
+    val profileApi: ProfileApiService = AuthRetrofit.create(ProfileApiService::class.java)
     val accountApi: AccountApiService = noAuthRetrofit.create(AccountApiService::class.java)
 }

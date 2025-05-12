@@ -41,7 +41,7 @@ class UsageDatabase(context: Context) :
     }
 
     @Synchronized
-    fun insertOrUpdateUsageData(date: String, hour: Int, usageSeconds: Long): Long {
+    fun insertOrUpdateUsageData(date: String, hour: Int, usageSeconds: Long, sent: Int): Long {
         val db = writableDatabase
         db.beginTransaction()
         return try {
@@ -60,19 +60,29 @@ class UsageDatabase(context: Context) :
                     put(COLUMN_DATE, date)
                     put(COLUMN_HOUR, hour)
                     put(COLUMN_USAGE_SECONDS, usageSeconds)
-                    put(COLUMN_SENT, 0) // Mark new data as unsent
+                    put(COLUMN_SENT, sent) // Mark new data as unsent
                 }
                 result = db.insert(TABLE_USAGE, null, contentValues)
-                Log.d("UsageDatabase", "Inserted new unsent usage data: date=$date, hour=$hour, usage_seconds=$usageSeconds")
+                Log.d("UsageDatabase", "Inserted new usage data: date=$date, hour=$hour, usage_seconds=$usageSeconds")
             } else {
-                Log.d("UsageDatabase", "Skipped insert: already exists")
-                result = 0L
+                val contentValues = ContentValues().apply {
+                    put(COLUMN_USAGE_SECONDS, usageSeconds)
+                    put(COLUMN_SENT, sent) // Optionally reset sent flag on update
+                }
+                val rowsUpdated = db.update(
+                    TABLE_USAGE,
+                    contentValues,
+                    "$COLUMN_DATE = ? AND $COLUMN_HOUR = ?",
+                    arrayOf(date, hour.toString())
+                )
+                result = rowsUpdated.toLong()
+                Log.d("UsageDatabase", "Updated existing usage data: date=$date, hour=$hour, usage_seconds=$usageSeconds")
             }
 
             db.setTransactionSuccessful()
             result
         } catch (e: Exception) {
-            Log.e("UsageDatabase", "Error inserting usage data", e)
+            Log.e("UsageDatabase", "Error inserting or updating usage data", e)
             -1L
         } finally {
             db.endTransaction()
@@ -97,18 +107,21 @@ class UsageDatabase(context: Context) :
         cursor.close()
         return unsentData
     }
+    fun getUsageDataForDate( date: String): List<UsageData> {
+        val db = readableDatabase
+        val usageList = mutableListOf<UsageData>()
+        val query = "SELECT $COLUMN_HOUR, $COLUMN_USAGE_SECONDS FROM $TABLE_USAGE WHERE $COLUMN_DATE = ? ORDER BY $COLUMN_HOUR ASC"
+        val cursor = db.rawQuery(query, arrayOf(date))
 
-    fun markAsSent(date: String, hour: Int) {
-        val db = writableDatabase
-        val contentValues = ContentValues().apply {
-            put(COLUMN_SENT, 1)
+        if (cursor.moveToFirst()) {
+            do {
+                val hour = cursor.getInt(0)
+                val seconds = cursor.getLong(1)
+                usageList.add(UsageData(date,hour, seconds))
+                Log.d("rawQuery", hour.toString())
+            } while (cursor.moveToNext())
         }
-        db.update(
-            TABLE_USAGE,
-            contentValues,
-            "$COLUMN_DATE = ? AND $COLUMN_HOUR = ?",
-            arrayOf(date, hour.toString())
-        )
-        Log.d("UsageDatabase", "Marked as sent: date=$date, hour=$hour")
+        cursor.close()
+        return usageList
     }
-}
+    }

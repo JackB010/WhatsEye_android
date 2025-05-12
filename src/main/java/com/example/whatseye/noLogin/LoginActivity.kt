@@ -5,15 +5,16 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.auth0.android.jwt.JWT
 import com.example.whatseye.R
-import com.example.whatseye.access.LockScreenActivity
 import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.RetrofitClient
+import com.example.whatseye.api.ws.WebSocketClientGeneral
+import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.LoginData
+import com.example.whatseye.profile.ProfileActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.hbb20.CountryCodePicker
@@ -30,6 +31,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var phoneLoginLayout: View
     private var isUsernameLogin = true
     private lateinit var data: LoginData
+    private var webSocketClient: WebSocketClientGeneral? = null
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,9 +42,6 @@ class LoginActivity : AppCompatActivity() {
         usernameLoginLayout = findViewById(R.id.usernameLoginLayout)
         phoneLoginLayout = findViewById(R.id.phoneLoginLayout)
         val submitButton: Button = findViewById(R.id.buttonSubmitLogin)
-
-        val tokenManager = JwtTokenManager(this)
-
         data = LoginData("", "")
 
         toggleButton.setOnClickListener {
@@ -107,6 +106,8 @@ class LoginActivity : AppCompatActivity() {
                             val access = json.getString("access")
                             val refresh = json.getString("refresh")
 
+                            val tokenManager = JwtTokenManager(this@LoginActivity)
+
                             tokenManager.saveAccessJwt(access)
                             tokenManager.saveRefreshJwt(refresh)
                             tokenManager.setIsLogin(true)
@@ -119,14 +120,16 @@ class LoginActivity : AppCompatActivity() {
                             tokenManager.setUsername(username)
                             tokenManager.setUserId(userId)
                             tokenManager.setFamilyId(familyId)
+                            // Get bad words list
+                            webSocketClient = WebSocketGeneralManager.getInstance(this@LoginActivity)
+                            webSocketClient!!.getBadWords()
+                            webSocketClient!!.getBadSchedules()
 
                             Toast.makeText(this@LoginActivity, "Connexion réussie !", Toast.LENGTH_SHORT).show()
 
-                            // Navigate to SignupActivity or MainActivity
-                            val intent = Intent(this@LoginActivity, LockScreenActivity::class.java)
+                            val intent = Intent(this@LoginActivity, ProfileActivity::class.java)
                             startActivity(intent)
                             finish()
-
                         } catch (e: Exception) {
                             e.printStackTrace()
                             Toast.makeText(
@@ -164,12 +167,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             })
 
-        }
-
-        val forgotPasswordText: TextView = findViewById(R.id.forgotPasswordText)
-        forgotPasswordText.setOnClickListener {
-            val intent = Intent(this, ResetPasswordActivity::class.java)
-            startActivity(intent)
         }
     }
 }

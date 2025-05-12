@@ -3,60 +3,60 @@ package com.example.whatseye.dataType
 class JavaScriptCode   {
     companion object {
         val CONTACT = """(async ()=>{
-   ng = document.querySelector('[aria-label="New group"]') 
-   ng.click()
-   await new Promise(resolve => setTimeout(resolve, 10));
-   const contactContainer = document.querySelector("div[data-tab='4']");
-   const parentElement = contactContainer.parentElement;    
-
-   if (contactContainer.querySelectorAll('[role="listitem"]').length === 0) return []
-   contactContainer.querySelectorAll('[role="listitem"]').forEach(item=>{ 
-      if(item.querySelector("span[title]"))
-         item.setAttribute('aria-selected_0',"false") 
-   })
-   
-   const arrowDownEvent = new KeyboardEvent('keydown', {
-            key: 'ArrowDown',
-            code: 'ArrowDown',
-            keyCode: 40,
-            which: 40,
-            bubbles: true
-        });
-   const searchBox = document.querySelector('input[placeholder="Search name or number"]');
-   searchBox.focus();
-   searchBox.dispatchEvent(arrowDownEvent);
-   
-   nb = contactContainer.firstChild.firstChild.style.height.replace('px', '')/72
-   contacts = []
-
-   for(let i=0; i<nb; i++){
-      await new Promise(resolve => setTimeout(resolve, 100));
-      item = contactContainer.querySelector('[aria-selected_0="false"]')
-      if(item.getAttribute('DONE') == null){
-         item.setAttribute('DONE', 'true')
-         let name = item.querySelector("span[title]").innerText;   
-         let about = item.querySelector("div[role='gridcell']").parentElement.childNodes[1].firstChild.innerText
-         let icon = item.querySelector('img') ? item.querySelector('img').src : "";
-         //contacts.push({ name, about, icon });
-         contacts.push({ name});
-      }
-      item.dispatchEvent(arrowDownEvent);
-      item.removeAttribute('aria-selected_0')
-
-      if(contactContainer.querySelectorAll('[aria-selected_0="false"]').length ===0){
-         if( contactContainer.querySelectorAll('[role="listitem"]').length !== 0){
-             contactContainer.querySelectorAll('[role="listitem"]').forEach(item=>{ 
-            if(item.querySelector("span[title]"))
-               item.setAttribute('aria-selected_0',"false") 
-            })
-         }else{
-            return contacts 
-         }
-      }
-   }
-          bc = document.querySelector('[data-icon="back"]')
-          bc.click()
-          localStorage.setItem("CONTACT", JSON.stringify(contacts));
+           ng = document.querySelector('[data-icon="new-chat-outline"]')
+           ng.click()
+           await new Promise(resolve => setTimeout(resolve, 10));
+           const contactContainer = document.querySelector("div[data-tab='4']");
+           const parentElement = contactContainer.parentElement;    
+        
+           if (contactContainer.querySelectorAll('[role="listitem"]').length === 0) return []
+           contactContainer.querySelectorAll('[role="listitem"]').forEach(item=>{ 
+              if(item.querySelector("span[title]"))
+                 item.setAttribute('aria-selected_0',"false") 
+           })
+           
+           const arrowDownEvent = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    code: 'ArrowDown',
+                    keyCode: 40,
+                    which: 40,
+                    bubbles: true
+                });
+           const searchBox = document.querySelector('[role="textbox"]');
+           searchBox.focus();
+           searchBox.dispatchEvent(arrowDownEvent);
+           
+           nb = contactContainer.firstChild.firstChild.style.height.replace('px', '')/72
+           contacts = []
+        
+           for(let i=0; i<nb; i++){
+              await new Promise(resolve => setTimeout(resolve, 120));
+              item = contactContainer.querySelector('[aria-selected_0="false"]')
+              if(item.getAttribute('DONE') == null){
+                 item.setAttribute('DONE', 'true')
+                 let name = item.querySelector("span[title]").innerText;   
+                 let about = item.querySelector("div[role='gridcell']").parentElement.childNodes[1].firstChild.innerText
+                 let icon = item.querySelector('img') ? item.querySelector('img').src : "";
+                 contacts.push({ name, about, icon });
+                 //contacts.push({ name});
+              }
+              item.dispatchEvent(arrowDownEvent);
+              item.removeAttribute('aria-selected_0')
+        
+              if(contactContainer.querySelectorAll('[aria-selected_0="false"]').length ===0){
+                 if( contactContainer.querySelectorAll('[role="listitem"]').length !== 0){
+                     contactContainer.querySelectorAll('[role="listitem"]').forEach(item=>{ 
+                    if(item.querySelector("span[title]"))
+                       item.setAttribute('aria-selected_0',"false") 
+                    })
+                 }else{
+                    return contacts 
+                 }
+              }
+           }
+              bc = document.querySelector('[data-icon="back"]')
+              bc.click()
+              localStorage.setItem("CONTACT", JSON.stringify(contacts));
             })();""".trimIndent()
         val CURRENT_CHATS = """(  ()=>{
                const getContacts = async() =>{
@@ -69,11 +69,11 @@ class JavaScriptCode   {
                         which: 40,
                         bubbles: true
                     });
-               const searchBox = document.querySelector('div[aria-label="Search input textbox"]');
+               const searchBox = document.querySelector('[role="textbox"]');
                searchBox.focus();
                searchBox.dispatchEvent(arrowDownEvent);
                
-               nb = document.querySelector('[aria-label="Chat list"]').style.height.replace('px', '')/72
+                const nb = document.querySelector('[aria-rowcount]').getAttribute('aria-rowcount') 
                contacts = []
                for(let i=0; i<nb; i++){
                   await new Promise(resolve => setTimeout(resolve, 60));

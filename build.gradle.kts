@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
     id("kotlin-kapt")
+
 }
 
 android {
@@ -40,10 +41,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
 }
 
 
+
 dependencies {
+
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -78,6 +82,13 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
     implementation("com.auth0.android:jwtdecode:2.0.2")
+    implementation (libs.mpandroidchart)
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
+    implementation("com.googlecode.libphonenumber:libphonenumber:8.13.11")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    kapt("com.github.bumptech.glide:compiler:4.15.1")
+
 
     // WebSocket library
 

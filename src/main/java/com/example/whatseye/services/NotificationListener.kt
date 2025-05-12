@@ -5,29 +5,23 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.example.whatseye.api.ws.WebSocketClientNotification
-import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.dataType.data.NotificationData
+
 
 class NotificationListener : NotificationListenerService() {
 
     private val webSocketManager = WebSocketClientNotification.getInstance()
     private var lastNotificationHash: Int? = null
     private var lastNotificationTime: Long = 0
-
     override fun onCreate() {
         super.onCreate()
-
-        val jwtManager = JwtTokenManager(this)
-        val userId = jwtManager.getUserId()
-        val token = jwtManager.getAccessJwt()
-
-        val wsUrl = "ws://192.168.181.116:8000/ws/notifications/$userId/?token=$token"
-        webSocketManager.initWebSocket(wsUrl)
+        webSocketManager.initialize(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName != "com.whatsapp") return
 
+        Log.d("NotificationListener", "Sending notification: ")
         val notification = sbn.notification
         val extras = notification.extras
 
@@ -60,5 +54,9 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         // Optional cleanup
+    }
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        Log.d("NotificationListener", "Notification Listener connected")
     }
 }

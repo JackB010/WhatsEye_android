@@ -3,12 +3,10 @@ package com.example.whatseye.access
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
-import android.widget.Toast
 import com.example.whatseye.R
 
 class DeviceAdminPermissionActivity : AppCompatActivity() {
