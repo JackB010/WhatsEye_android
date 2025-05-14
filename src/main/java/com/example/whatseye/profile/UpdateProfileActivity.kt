@@ -23,7 +23,6 @@ import com.example.whatseye.api.managers.BadWordsManager
 import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
-import com.example.whatseye.api.ws.WebSocketClientNotification
 import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.ChildProfile
 import com.example.whatseye.utils.saveProfileToLocal
@@ -184,9 +183,7 @@ class UpdateProfileActivity : AppCompatActivity() {
         LockManager(this).clearAllLocks()
         PasskeyManager(this).clearPassKey()
         BadWordsManager(this).clearBadWords()
-        val webSocketNot:WebSocketClientNotification = WebSocketClientNotification.getInstance()
-        webSocketNot.disconnect()
-        val webSocketGen:WebSocketGeneralManager = WebSocketGeneralManager
+        val webSocketGen = WebSocketGeneralManager
         webSocketGen.getInstance(this)
         webSocketGen.closeConnection()
 

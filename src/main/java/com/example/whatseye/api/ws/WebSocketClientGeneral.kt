@@ -8,11 +8,13 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
+import com.google.gson.Gson
 import androidx.core.content.ContextCompat
 import com.example.whatseye.dataType.db.ScheduleDataBase
 import com.example.whatseye.api.managers.BadWordsManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
+import com.example.whatseye.dataType.data.NotificationData
 import com.example.whatseye.dataType.data.ScheduleData
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
@@ -27,6 +29,7 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS) // Disable timeout for long-lived connections
         .build()
+    private val gson = Gson()
     private var webSocket: WebSocket? = null
     private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var isReconnecting = false
@@ -191,6 +194,7 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         }.toString()
         webSocket?.send(message)
     }
+
     private fun sendScheduleConfirmation() {
         val confirmationMessage = JSONObject().apply {
             put("type", "CONFIRM_SCHEDULES")
@@ -211,6 +215,7 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         }.toString()
         webSocket?.send(confirmationMessage)
     }
+
     private fun sendLockPhoneConfirmation() {
         val confirmationMessage = JSONObject().apply {
             put("type", "CONFIRM_LOCK_PHONE")
@@ -328,6 +333,14 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         }.toString()
 
         webSocket?.send(confirmationMessage)
+    }
+
+    fun sendNotification(notificationData: NotificationData) {
+        val message = JSONObject().apply {
+            put("type", "NOTIFICATION")
+            put("notification", JSONObject(gson.toJson(notificationData)))
+        }.toString()
+        webSocket?.send(message)
     }
 
     fun close() {

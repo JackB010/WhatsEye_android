@@ -2,10 +2,8 @@ package com.example.whatseye.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.marginLeft
 import com.example.whatseye.R
 import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.BarEntry
@@ -34,11 +32,11 @@ class Tooltip(context: Context, layoutResource: Int) : MarkerView(context, layou
             }
 
             // Apply translation instead of margin
-            ivPoint.translationX = dpToPx(context, arrowOffset).toFloat()
+            ivPoint.translationX = dpToPx(context, arrowOffset)
             val usageMinutes = e.y.toInt()
             val hourFormatted = String.format("%02d", hour)
             val usageFormatted = String.format("%02d", Math.round(usageMinutes.toFloat()))
-            tooltipText.text = "${usageFormatted} min ⦿ $hourFormatted:00"
+            tooltipText.text = "$usageFormatted min ⦿ $hourFormatted:00"
         }
         super.refreshContent(e, highlight)
     }

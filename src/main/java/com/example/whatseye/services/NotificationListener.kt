@@ -6,18 +6,19 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.example.whatseye.api.ws.WebSocketClientNotification
+import com.example.whatseye.api.ws.WebSocketClientGeneral
+import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.NotificationData
 
 class NotificationListener : NotificationListenerService() {
 
-    private val webSocketManager = WebSocketClientNotification.getInstance()
+    private lateinit var webSocketManager: WebSocketClientGeneral
     private var lastNotificationHash: Int? = null
     private var lastNotificationTime: Long = 0
 
     override fun onCreate() {
         super.onCreate()
-        webSocketManager.initialize(this)
+        webSocketManager = WebSocketGeneralManager.getInstance(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {

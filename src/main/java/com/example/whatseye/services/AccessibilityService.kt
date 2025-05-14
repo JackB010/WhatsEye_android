@@ -17,7 +17,8 @@ import com.example.whatseye.LockScreenActivity
 import com.example.whatseye.api.managers.BadWordsManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
-import com.example.whatseye.api.ws.WebSocketClientNotification
+import com.example.whatseye.api.ws.WebSocketClientGeneral
+import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.NotificationData
 import com.example.whatseye.dataType.db.ScheduleDataBase
 import com.example.whatseye.utils.createNotification
@@ -29,7 +30,7 @@ class AccessibilityService : AccessibilityService() {
     private var lastText: String = ""
     private val handler = Handler(Looper.getMainLooper())
     private val TYPING_DELAY_MS = 1800L
-    private val webSocketManager = WebSocketClientNotification.getInstance()
+    private lateinit var webSocketManager: WebSocketClientGeneral
     private var lockScreenRunnable: Runnable? = null
 
     private val checkBadWordsRunnable = Runnable {
@@ -50,7 +51,7 @@ class AccessibilityService : AccessibilityService() {
     override fun onCreate() {
         super.onCreate()
         badWords = BadWordsManager(this).getBadWords()
-        webSocketManager.initialize(this)
+        webSocketManager = WebSocketGeneralManager.getInstance(this)
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
