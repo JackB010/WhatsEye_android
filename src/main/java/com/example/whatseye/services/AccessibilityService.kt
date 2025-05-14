@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import com.example.whatseye.LockScreenActivity
@@ -96,7 +97,7 @@ class AccessibilityService : AccessibilityService() {
     private fun handleWindowChange(event: AccessibilityEvent) {
         val packageName = event.packageName?.toString() ?: return
         val lockManager = LockManager(this)
-
+        Log.d("AccessibilityEvent", "Package: ${event.packageName}, Class: ${event.className}, Text: ${event.text}")
 
         if (packageName == "com.android.settings" && lockManager.getLockedStatus(packageName)) {
             //performGlobalAction(GLOBAL_ACTION_HOME)

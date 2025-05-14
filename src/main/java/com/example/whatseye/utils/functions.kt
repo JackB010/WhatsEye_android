@@ -12,19 +12,25 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.auth0.android.jwt.JWT
 import com.example.whatseye.R
 import com.example.whatseye.access.DeviceAdminReceiver
+import com.example.whatseye.api.RetrofitClient
 import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
-import com.example.whatseye.api.ws.WebSocketClientGeneral
-import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.ChildProfile
 import com.example.whatseye.services.AccessibilityService
-import org.json.JSONObject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.File
 
 fun createNotification(context: Context, id: String, title: String, text: String): Notification {
     return NotificationCompat.Builder(context, id)
@@ -58,40 +64,40 @@ fun saveProfileToLocal(context: Context, profile: ChildProfile) {
         putString("username", profile.user.username)
         putString("email", profile.user.email)
         putString("phone_number", profile.phone_number)
-        putString("birthday", profile.birthday ?: "")
-        putBoolean("phone_locked", profile.phone_locked ?: false)
-        putString("photo_path", profile.photo ?: "")
+        putString("birthday", profile.birthday)
+        putBoolean("phone_locked", profile.phone_locked)
+        putString("photo_path", profile.photo)
         apply()
     }
 }
 
-fun setProfileData(context: Context, json : JSONObject){
-    var webSocketClient: WebSocketClientGeneral? = null
-
-    val access = json.getString("access")
-    val refresh = json.getString("refresh")
-
-    val tokenManager = JwtTokenManager(context)
-    tokenManager.saveAccessJwt(access)
-    tokenManager.saveRefreshJwt(refresh)
-    tokenManager.setIsLogin(true)
-    val jwt = JWT(access)
-
-    val userId = jwt.getClaim("id").asString().toString()
-    val familyId = jwt.getClaim("family_id").asString().toString()
-    val username = jwt.getClaim("username").asString().toString()
-
-    tokenManager.setUsername(username)
-    tokenManager.setUserId(userId)
-    tokenManager.setFamilyId(familyId)
-    // Get bad words list
-    webSocketClient = WebSocketGeneralManager.getInstance(context)
-    webSocketClient.getBadWords()
-    webSocketClient.getBadSchedules()
-
-    Toast.makeText(context, "Connexion réussie !", Toast.LENGTH_SHORT).show()
-}
-
+//fun setProfileData(context: Context, json : JSONObject){
+//    var webSocketClient: WebSocketClientGeneral? = null
+//
+//    val access = json.getString("access")
+//    val refresh = json.getString("refresh")
+//
+//    val tokenManager = JwtTokenManager(context)
+//    tokenManager.saveAccessJwt(access)
+//    tokenManager.saveRefreshJwt(refresh)
+//    tokenManager.setIsLogin(true)
+//    val jwt = JWT(access)
+//
+//    val userId = jwt.getClaim("id").asString().toString()
+//    val familyId = jwt.getClaim("family_id").asString().toString()
+//    val username = jwt.getClaim("username").asString().toString()
+//
+//    tokenManager.setUsername(username)
+//    tokenManager.setUserId(userId)
+//    tokenManager.setFamilyId(familyId)
+//    // Get bad words list
+//    webSocketClient = WebSocketGeneralManager.getInstance(context)
+//    webSocketClient.getBadWords()
+//    webSocketClient.getBadSchedules()
+//
+//    Toast.makeText(context, "Connexion réussie !", Toast.LENGTH_SHORT).show()
+//}
+//
 
 fun areAllPermissionsGranted(context: Context): Boolean {
     val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -147,5 +153,45 @@ fun areAllPermissionsGranted(context: Context): Boolean {
             backgroundLocationGranted
 }
 
+
+fun uploadRecord(context: Context, type: String, outputPath:String) {
+    val childId = JwtTokenManager(context).getUserId()
+    val file = File(outputPath)
+
+    // Prepare the audio file as MultipartBody.Part
+    val mimeType = when {
+        outputPath.endsWith(".mp4", ignoreCase = true) -> "video/mp4"
+        outputPath.endsWith(".m4a", ignoreCase = true) -> "audio/mp4"
+        outputPath.endsWith(".aac", ignoreCase = true) -> "audio/aac"
+        else -> "application/octet-stream" // fallback
+    }
+
+    val requestFile = file.asRequestBody(mimeType.toMediaTypeOrNull())
+
+    // 2. Verify the part name matches Django's expected field name
+    val audioPart = MultipartBody.Part.createFormData(
+        name = "record_file",  // Must match Django's model FileField name
+        filename = file.name,
+        body = requestFile
+    )
+    val recordingType = type.toRequestBody("text/plain".toMediaTypeOrNull())
+    // Call the API
+    val call = childId?.let {
+        RetrofitClient.controlApi.uploadRecording(it, recordingType ,audioPart)
+    }
+
+    call?.enqueue(object : Callback<ResponseBody> {
+        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            if (response.isSuccessful) {
+                Log.d("uploadRecording", "Upload successful")
+            } else {
+                Log.e("uploadRecording", "Upload failed: ${response.message()}")
+            }
+        }
+        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            Log.e("uploadRecording", "Error: ${t.message}")
+        }
+    })
+}
 
 
