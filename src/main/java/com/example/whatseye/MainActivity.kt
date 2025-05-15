@@ -19,6 +19,7 @@ import com.example.whatseye.profile.ProfileActivity
 import com.example.whatseye.services.AlwaysRunningService
 import com.example.whatseye.utils.areAllPermissionsGranted
 import com.example.whatseye.whatsapp.WhatsAppLinkActivity
+import com.example.whatseye.worker.RetryUploadWorker
 import com.example.whatseye.worker.TokenRefreshWorker
 import com.example.whatseye.worker.UsageWorker
 import java.util.concurrent.TimeUnit
@@ -47,6 +48,14 @@ class MainActivity : AppCompatActivity() {
                 "UsageDataSyncWork",
                 ExistingPeriodicWorkPolicy.REPLACE,
                 workUsageRequest
+            )
+            val workRequest = PeriodicWorkRequestBuilder<RetryUploadWorker>(15, TimeUnit.MINUTES)
+                .build()
+
+            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                "retryUploadsWork",
+                androidx.work.ExistingPeriodicWorkPolicy.REPLACE,
+                workRequest
             )
 
             val workTokenRefreshRequest =

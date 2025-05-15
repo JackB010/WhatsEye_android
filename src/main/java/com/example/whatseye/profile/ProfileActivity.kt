@@ -72,6 +72,7 @@ class ProfileActivity : AppCompatActivity() {
                             if (profile.user.last_name.isEmpty() || profile.user.first_name.isEmpty()){
                                 goAdd()
                             }
+                            updateProfile()
                         }
                     }
                     override fun onFailure(call: Call<ChildProfile>, t: Throwable) {

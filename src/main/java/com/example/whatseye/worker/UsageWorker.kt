@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.whatseye.api.RetrofitClient
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.dataType.data.UsageData
 import com.example.whatseye.dataType.db.UsageDatabase
 import kotlinx.coroutines.CompletableDeferred
@@ -31,7 +32,9 @@ class UsageWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         RetrofitClient.initialize(applicationContext)
-
+        if(!JwtTokenManager(applicationContext).getIsLogin()){
+            return@withContext Result.success()
+        }
         try {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 

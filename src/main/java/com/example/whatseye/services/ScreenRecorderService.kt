@@ -63,7 +63,7 @@ class ScreenRecorderService : Service() {
             }
             ACTION_STOP -> {
                 stopRecording()
-                uploadRecord(this, "video", outputPath)
+                uploadRecord(this, "video", outputPath, false)
 
             }
         }

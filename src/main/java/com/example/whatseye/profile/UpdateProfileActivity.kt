@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.example.whatseye.MainActivity
 import com.example.whatseye.R
@@ -25,6 +26,7 @@ import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.ChildProfile
+import com.example.whatseye.services.AlwaysRunningService
 import com.example.whatseye.utils.saveProfileToLocal
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -192,7 +194,20 @@ class UpdateProfileActivity : AppCompatActivity() {
         CookieManager.getInstance().removeAllCookies(null)
         CookieManager.getInstance().flush()
         WebStorage.getInstance().deleteAllData()
+        val intent1 = Intent(this, AlwaysRunningService::class.java)
+        stopService(intent1)
+
+        // To cancel UsageWorker
+        WorkManager.getInstance(applicationContext).cancelUniqueWork("UsageDataSyncWork")
+
+        // To cancel TokenRefreshWorker
+        WorkManager.getInstance(applicationContext).cancelUniqueWork("TokenRefreshSyncWork")
+
+        //To cancel RetryUploadWorker
+        WorkManager.getInstance(applicationContext).cancelUniqueWork("retryUploadsWork")
+
         deleteDatabase("schedule.db")
+        deleteDatabase("recordings.db")
         deleteDatabase("usage.db")
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear the stack

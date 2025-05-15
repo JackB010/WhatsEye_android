@@ -21,6 +21,8 @@ import com.example.whatseye.api.RetrofitClient
 import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.dataType.data.ChildProfile
+import com.example.whatseye.dataType.data.RecordingData
+import com.example.whatseye.dataType.db.RecordingDatabase
 import com.example.whatseye.services.AccessibilityService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -154,9 +156,11 @@ fun areAllPermissionsGranted(context: Context): Boolean {
 }
 
 
-fun uploadRecord(context: Context, type: String, outputPath:String) {
+fun uploadRecord(context: Context, type: String, outputPath:String, db:Boolean) {
     val childId = JwtTokenManager(context).getUserId()
     val file = File(outputPath)
+    val timestamp = System.currentTimeMillis()
+    RetrofitClient.initialize(context)
 
     // Prepare the audio file as MultipartBody.Part
     val mimeType = when {
@@ -175,23 +179,80 @@ fun uploadRecord(context: Context, type: String, outputPath:String) {
         body = requestFile
     )
     val recordingType = type.toRequestBody("text/plain".toMediaTypeOrNull())
-    // Call the API
+    val timestampRequest = timestamp.toString().toRequestBody("text/plain".toMediaTypeOrNull())    // Call the API
+
     val call = childId?.let {
-        RetrofitClient.controlApi.uploadRecording(it, recordingType ,audioPart)
+        RetrofitClient.controlApi.uploadRecording(it, recordingType , timestampRequest ,audioPart)
     }
 
     call?.enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
-                Log.d("uploadRecording", "Upload successful")
+                if (file.exists()) {
+                    if(db){
+                        val dbHelper = RecordingDatabase(context)
+                        dbHelper.deleteRecording(outputPath)
+                        countFailed(context, -1)
+                    }
+                    val deleted = file.delete()
+                    if (deleted) {
+                        Log.d("uploadRecording", "File deleted successfully")
+                    } else {
+                        Log.e("uploadRecording", "Failed to delete the file")
+                    }
+                }
             } else {
+                if(!db){
+                    countFailed(context, 1)
+                    val dbHelper = RecordingDatabase(context)
+                    val newRecording = RecordingData(
+                        recordingType = type,
+                        recordFile = outputPath,
+                        timestamp = timestamp
+                    )
+                    val insertRecording = dbHelper.insertRecording(newRecording)
+                }
                 Log.e("uploadRecording", "Upload failed: ${response.message()}")
             }
         }
         override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            if(!db){
+                countFailed(context, 1)
+                val dbHelper = RecordingDatabase(context)
+                val newRecording = RecordingData(
+                    recordingType = type,
+                    recordFile = outputPath,
+                    timestamp = timestamp
+                )
+                val insertRecording = dbHelper.insertRecording(newRecording)
+            }
             Log.e("uploadRecording", "Error: ${t.message}")
         }
     })
 }
 
+fun retryFailedUploads(context : Context ) {
+    val sharedPrefs = context.getSharedPreferences("upload_prefs", Context.MODE_PRIVATE)
+    val failedCountKey = "failed_upload_count"
+    val currentFailedCount = sharedPrefs.getInt(failedCountKey, 0)
+    if (currentFailedCount != 0) {
+        val dbHelper = RecordingDatabase(context)
+        val failedRecords = dbHelper.getAllRecordings()
+        for (record in failedRecords) {
+            uploadRecord(
+                context,
+                record.recordingType,
+                record.recordFile,
+                true
+            ) // true indicates we are retrying
+        }
+    }
+}
+fun countFailed(context : Context, num:Short){
+    val sharedPrefs = context.getSharedPreferences("upload_prefs", Context.MODE_PRIVATE)
+    val failedCountKey = "failed_upload_count"
+    val currentFailedCount = sharedPrefs.getInt(failedCountKey, 0)
+    val newFailedCount = currentFailedCount + num
+    sharedPrefs.edit().putInt(failedCountKey, newFailedCount).apply()
+}
 

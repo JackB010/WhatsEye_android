@@ -15,6 +15,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import com.example.whatseye.LockScreenActivity
 import com.example.whatseye.api.managers.BadWordsManager
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.api.ws.WebSocketClientGeneral
@@ -50,9 +51,10 @@ class AccessibilityService : AccessibilityService() {
 
     override fun onCreate() {
         super.onCreate()
-        badWords = BadWordsManager(this).getBadWords()
-        webSocketManager = WebSocketGeneralManager.getInstance(this)
-
+        if(JwtTokenManager(this).getIsLogin()) {
+            badWords = BadWordsManager(this).getBadWords()
+            webSocketManager = WebSocketGeneralManager.getInstance(this)
+        }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
         }

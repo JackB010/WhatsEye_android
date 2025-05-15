@@ -37,7 +37,7 @@ class RecordingService : Service() {
                 if (isRecording) {
                     executor.execute {
                         stopRecording()
-                        uploadRecord(this, "voice", outputPath)
+                        uploadRecord(this, "voice", outputPath, false)
                     }
                 }
             }

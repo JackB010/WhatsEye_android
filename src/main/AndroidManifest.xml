@@ -74,6 +74,8 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.USE_SIP" />
     <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <uses-permission android:name="android.permission.CAPTURE_VIDEO_OUTPUT"
+        tools:ignore="ProtectedPermissions" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- FOREGROUND_SERVICE -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -297,6 +299,8 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
             android:noHistory="true" />
+
+
 
         <!-- End AppMonitorService -->
         <!-- End AppMonitorService -->
