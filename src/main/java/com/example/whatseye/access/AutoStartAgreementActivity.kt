@@ -32,6 +32,8 @@ class AutoStartAgreementActivity : AppCompatActivity() {
         if (launchedSettings) {
             // User came back from settings, go to MainActivity
             val intent = Intent(this, IgnoreBatteryOptimizationActivity::class.java)
+            intent.flags =
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }

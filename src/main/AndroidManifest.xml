@@ -197,6 +197,10 @@
             android:taskAffinity=""
             android:theme="@style/FullScreenOverlayTheme" />
         <activity
+            android:name=".access.MicrophonePermissionActivity"
+            android:exported="true" />
+
+        <activity
             android:name=".access.AccessibilityPermissionActivity"
             android:exported="true" />
         <activity

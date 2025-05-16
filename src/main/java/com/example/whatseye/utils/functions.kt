@@ -101,6 +101,7 @@ fun saveProfileToLocal(context: Context, profile: ChildProfile) {
 //}
 //
 
+
 fun areAllPermissionsGranted(context: Context): Boolean {
     val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -135,16 +136,19 @@ fun areAllPermissionsGranted(context: Context): Boolean {
     val deviceAdminActive = devicePolicyManager.isAdminActive(deviceAdminReceiver)
 
     // Runtime Permissions
-
-
     val backgroundLocationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     } else {
-        true // No background location permission before Android 10
+        true
     }
+
+    val microphonePermissionGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.RECORD_AUDIO
+    ) == PackageManager.PERMISSION_GRANTED
 
     return overlayGranted &&
             usageStatsGranted &&
@@ -152,7 +156,8 @@ fun areAllPermissionsGranted(context: Context): Boolean {
             accessibilityGranted &&
             batteryOptimizationIgnored &&
             deviceAdminActive &&
-            backgroundLocationGranted
+            backgroundLocationGranted &&
+            microphonePermissionGranted
 }
 
 

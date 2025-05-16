@@ -85,7 +85,7 @@ class NotificationPermissionActivity : AppCompatActivity() {
 
     private fun updateStatus() {
         if (hasNotificationPermission()) {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, MicrophonePermissionActivity::class.java)
             startActivity(intent)
             finish()
         }

@@ -29,10 +29,18 @@ class LockScreenActivity : AppCompatActivity() {
     }
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
-            KeyEvent.KEYCODE_HOME, KeyEvent.KEYCODE_BACK -> true
+            KeyEvent.KEYCODE_HOME -> true // still block home button
+            KeyEvent.KEYCODE_BACK -> {
+                val packageName = intent.getStringExtra("packageName") ?: ""
+                val appName = applicationInfo.loadLabel(packageManager).toString()
+                if(packageName==appName)  finish()
+                true
+            }
             else -> super.onKeyDown(keyCode, event)
         }
     }
+
+
 
     private fun setupPinInputsAndButton() {
         val pinFields = arrayOf(

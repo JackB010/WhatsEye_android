@@ -249,25 +249,18 @@ class UpdateProfileActivity : AppCompatActivity() {
         datePicker.show()
     }
 
-
     private fun submitProfileUpdate() {
-        val childId =  JwtTokenManager(this).getUserId()
+        val childId = JwtTokenManager(this).getUserId()
         val firstName = editTextFirstName.text.toString()
         val lastName = editTextLastName.text.toString()
         val email = editTextEmail.text.toString()
         val birthday = editTextBirthday.text.toString()
         val rawPhone = editTextPhone.text?.toString()?.trim() ?: ""
         val countryCode = countryCodePicker.selectedCountryCodeWithPlus
-        val phoneNumber = if (rawPhone.startsWith("+")) {
-            rawPhone // assume user entered full number
-        } else {
-            countryCode + rawPhone
-        }
-        LockManager(this).savePhoneStatus(switchPhoneLocked.isChecked)
-//        val sharedPref = getSharedPreferences("profile_data", Context.MODE_PRIVATE)
-//        sharedPref.getBoolean("phone_locked", false)
-        val phoneLocked = switchPhoneLocked.isChecked.toString()
+        val phoneNumber = if (rawPhone.startsWith("+")) rawPhone else countryCode + rawPhone
 
+        LockManager(this).savePhoneStatus(switchPhoneLocked.isChecked)
+        val phoneLocked = switchPhoneLocked.isChecked.toString()
 
         val firstNamePart = firstName.toRequestBody("text/plain".toMediaTypeOrNull())
         val lastNamePart = lastName.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -282,6 +275,7 @@ class UpdateProfileActivity : AppCompatActivity() {
                 MultipartBody.Part.createFormData("photo", file.name, requestFile)
             }
         }
+
         if (childId != null) {
             val call = RetrofitClient.profileApi.patchChildProfile(
                 childId = childId,
@@ -295,13 +289,11 @@ class UpdateProfileActivity : AppCompatActivity() {
             )
 
             call.enqueue(object : Callback<ChildProfile> {
-                override fun onResponse(
-                    call: Call<ChildProfile>,
-                    response: Response<ChildProfile>
-                ) {
+                override fun onResponse(call: Call<ChildProfile>, response: Response<ChildProfile>) {
                     if (response.isSuccessful) {
-                        val profile = response.body()!!
-                        saveProfileToLocal(this@UpdateProfileActivity, profile)
+                        response.body()?.let { profile ->
+                            saveProfileToLocal(this@UpdateProfileActivity, profile)
+                        }
                         Toast.makeText(
                             this@UpdateProfileActivity,
                             "Profil mis à jour",
@@ -314,22 +306,36 @@ class UpdateProfileActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
+
+                    // ✅ In both success and failure: go to profile
+                    goToProfileActivity()
                 }
 
                 override fun onFailure(call: Call<ChildProfile>, t: Throwable) {
                     Toast.makeText(
                         this@UpdateProfileActivity,
-                        "Error: ${t.message}",
+                        "Erreur réseau : ${t.message}",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // ✅ Still go to profile even on failure
+                    goToProfileActivity()
                 }
             })
-
-            val intent = Intent(this, ProfileActivity::class.java)
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
+        } else {
+            Toast.makeText(this, "Identifiant utilisateur introuvable", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun goToProfileActivity() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+
+
     private fun uriToFile(uri: Uri): File? {
         return try {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
