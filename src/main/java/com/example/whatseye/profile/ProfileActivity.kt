@@ -65,6 +65,7 @@ class ProfileActivity : AppCompatActivity() {
         setupListeners()
 
         loadProfile()
+        updateProfile()
         updateDateUI()
         updateSchedulesUI()
     }

@@ -33,7 +33,7 @@ class AccessibilityService : AccessibilityService() {
     private val TYPING_DELAY_MS = 1800L
     private lateinit var webSocketManager: WebSocketClientGeneral
     private var lockScreenRunnable: Runnable? = null
-
+    private var firstOpen = true
     private val checkBadWordsRunnable = Runnable {
         checkBadWords(lastText)
     }
@@ -45,6 +45,7 @@ class AccessibilityService : AccessibilityService() {
                 lockManager.saveLockedStatus("com.whatsapp", true)
                 lockManager.saveLockedStatus("com.miui.appmanager.ApplicationsDetailsActivity", true)
                 lockManager.saveLockedStatus("com.android.settings", true)
+                firstOpen = true
             }
         }
     }
@@ -52,7 +53,6 @@ class AccessibilityService : AccessibilityService() {
     override fun onCreate() {
         super.onCreate()
         if(JwtTokenManager(this).getIsLogin()) {
-            badWords = BadWordsManager(this).getBadWords()
             webSocketManager = WebSocketGeneralManager.getInstance(this)
         }
         val filter = IntentFilter().apply {
@@ -80,8 +80,16 @@ class AccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event?.let {
             when (it.eventType) {
-                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> handleTextChange(it)
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> if (PasskeyManager(this).getStatus()) handleWindowChange(it)
+                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> {
+                    if(JwtTokenManager(this).getIsLogin()) {
+                        badWords = BadWordsManager(this).getBadWords()
+                        handleTextChange(it)
+                    }
+                }
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ->{
+                    if (PasskeyManager(this).getStatus())
+                        handleWindowChange(it)
+                }
             }
         }
     }
@@ -112,6 +120,11 @@ class AccessibilityService : AccessibilityService() {
         }
 
         if (packageName == "com.whatsapp") {
+            if(firstOpen) {
+                webSocketManager.getBadWords()
+                webSocketManager.getSchedules()
+                firstOpen=false
+            }
             val dbHelper = ScheduleDataBase(this)
             val activeSchedules = dbHelper.getActiveSchedules()
             val notificationManager = ContextCompat.getSystemService(this, NotificationManager::class.java)
@@ -141,6 +154,8 @@ class AccessibilityService : AccessibilityService() {
                 handler.postDelayed(lockScreenRunnable!!, 100)
                 return
             }
+        }else{
+            firstOpen = true
         }
     }
 

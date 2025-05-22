@@ -123,7 +123,7 @@ class LoginActivity : AppCompatActivity() {
                             // Get bad words list
                             webSocketClient = WebSocketGeneralManager.getInstance(this@LoginActivity)
                             webSocketClient!!.getBadWords()
-                            webSocketClient!!.getBadSchedules()
+                            webSocketClient!!.getSchedules()
 
                             Toast.makeText(this@LoginActivity, "Connexion réussie !", Toast.LENGTH_SHORT).show()
 

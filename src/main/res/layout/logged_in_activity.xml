@@ -7,26 +7,29 @@
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="400dp"
+        android:layout_below="@+id/btngetContact"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="19dp"
-        android:visibility="visible" />
+        android:layout_marginTop="99dp"
+        android:layout_marginBottom="2dp"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/profileTextView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:layout_x="-2dp"
+            android:layout_y="-373dp"
+            android:scrollbarAlwaysDrawHorizontalTrack="true"
+            android:scrollbars="horizontal"
+            android:text="Profile Data will appear here"
+            android:textSize="18sp" />
+    </WebView>
 
     <Button
         android:id="@+id/btngetContact"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:text="click me" />
-
-    <TextView
-        android:id="@+id/profileTextView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/btngetContact"
-        android:layout_alignParentEnd="true"
-
-        android:scrollbarAlwaysDrawHorizontalTrack="true"
-        android:scrollbars="horizontal"
-        android:text="Profile Data will appear here"
-        android:textSize="18sp" />
 
 </RelativeLayout>

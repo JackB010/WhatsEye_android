@@ -30,7 +30,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val tokenManager = JwtTokenManager(this)
-
         // If user is logged in and permissions are incomplete, start background services
         if (tokenManager.getIsLogin() && !areAllPermissionsGranted(this)) {
             startBackgroundServices()

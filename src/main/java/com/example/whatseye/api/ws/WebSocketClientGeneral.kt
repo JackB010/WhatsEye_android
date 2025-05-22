@@ -8,6 +8,9 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import com.google.gson.Gson
 import androidx.core.content.ContextCompat
 import com.example.whatseye.dataType.db.ScheduleDataBase
@@ -16,6 +19,7 @@ import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.dataType.data.NotificationData
 import com.example.whatseye.dataType.data.ScheduleData
+import com.example.whatseye.services.AlwaysRunningService
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
 import com.google.android.gms.location.*
@@ -39,6 +43,8 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
     private val baseDelayMs = 1000L // 1 second initial delay
     private val maxDelayMs = 15000L // Cap at 15 seconds
     private val dbHelper = ScheduleDataBase(context)
+    private val mainHandler = Handler(Looper.getMainLooper())
+
 
     init {
         connect()
@@ -125,7 +131,6 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
                 }
                 val badWordsManager = BadWordsManager(context)
                 badWordsManager.saveBadWords(badWordsList)
-                sendBadWordsConfirmation()
             }
 
             "LOCK_PHONE" -> {
@@ -151,22 +156,21 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
                     days = daysList
                     )
                 dbHelper.insertSchedule(scheduleObject)
-                sendAddScheduleConfirmation()
             }
 
             "DELETE_SCHEDULE"->{
                 val id = jsonObject.getString("id")
                 dbHelper.deleteSchedule(id.toInt())
-                sendDeleteScheduleConfirmation()
             }
 
             "SCHEDULE" -> {
                 val schedules = jsonObject.getJSONArray("schedules")
+                val newScheduleIds = mutableSetOf<Int>()
 
+                // Step 1: Insert or update new schedules and collect their IDs
                 for (i in 0 until schedules.length()) {
                     val scheduleJson = schedules.getJSONObject(i)
                     val daysJsonArray = scheduleJson.getJSONArray("days")
-
                     val daysList: List<Int> = (0 until daysJsonArray.length()).map { j ->
                         daysJsonArray.getInt(j)
                     }
@@ -179,43 +183,58 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
                         endDate = scheduleJson.getString("end_date"),
                         days = daysList
                     )
-
+                    newScheduleIds.add(scheduleObject.id)
                     dbHelper.insertSchedule(scheduleObject)
                 }
 
-                sendScheduleConfirmation()
+                // Step 2: Get all non-deleted schedules from the database
+                val existingSchedules = dbHelper.getAllSchedules()
+                val existingScheduleIds = existingSchedules.map { it.id }.toSet()
+
+                // Step 3: Find schedules to delete (not in newScheduleIds)
+                val schedulesToDelete = existingScheduleIds - newScheduleIds
+
+                // Step 4: Soft-delete schedules not in the new list
+                schedulesToDelete.forEach { id ->
+                    dbHelper.deleteSchedule(id)
+                }
+            }
+
+            "REQUEST_CONTACT"->{
+                Log.d("REQUEST_CONTACT", "REQUEST_CONTACT")
+                mainHandler.post {
+                    AlwaysRunningService.getInstance()?.getContact()
+                }
+            }
+            "REQUEST_CURRENT_CHATS"->{
+                Log.d("REQUEST_CURRENT_CHATS", "REQUEST_CURRENT_CHATS")
+                mainHandler.post {
+                    AlwaysRunningService.getInstance()?.getContactChat()
+                }
+            }
+            "REQUEST_BLOCK_CHAT"->{
+                Log.d("REQUEST_BLOCK_CHAT", "REQUEST_BLOCK_CHAT")
+                val name = jsonObject.getString("name")
+                mainHandler.post {
+                    AlwaysRunningService.getInstance()?.blockChat(name)
+                }
+            }
+            "REQUEST_CHAT"->{
+                val name = jsonObject.getString("name")
+                mainHandler.post {
+                    AlwaysRunningService.getInstance()?.getChatRoom(name)
+                    //LoggedInActivity.getInstance()?.getChatRoom(name)
+                }
             }
         }
     }
 
-    fun getBadSchedules() {
+    fun getSchedules() {
         val message = JSONObject().apply {
             put("type", "SCHEDULE")
         }.toString()
         webSocket?.send(message)
     }
-
-    private fun sendScheduleConfirmation() {
-        val confirmationMessage = JSONObject().apply {
-            put("type", "CONFIRM_SCHEDULES")
-        }.toString()
-        webSocket?.send(confirmationMessage)
-    }
-
-    private fun sendDeleteScheduleConfirmation() {
-        val confirmationMessage = JSONObject().apply {
-            put("type", "CONFIRM_DELETE_SCHEDULE")
-        }.toString()
-        webSocket?.send(confirmationMessage)
-    }
-
-    private fun sendAddScheduleConfirmation() {
-        val confirmationMessage = JSONObject().apply {
-            put("type", "CONFIRM_ADD_SCHEDULE")
-        }.toString()
-        webSocket?.send(confirmationMessage)
-    }
-
     private fun sendLockPhoneConfirmation() {
         val confirmationMessage = JSONObject().apply {
             put("type", "CONFIRM_LOCK_PHONE")
@@ -228,14 +247,6 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             put("type", "BAD_WORDS")
         }.toString()
         webSocket?.send(message)
-    }
-
-    private fun sendBadWordsConfirmation() {
-        val confirmationMessage = JSONObject().apply {
-            put("type", "CONFIRM_BAD_WORDS")
-        }.toString()
-
-        webSocket?.send(confirmationMessage)
     }
 
     private fun handleLocationRequest() {
@@ -277,17 +288,36 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
 
     @SuppressLint("MissingPermission")
     private fun getLastLocation() {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                location?.let {
-                    sendLocationData(it)
-                } ?: run {
-                    sendLocationError("Location not available")
+        val locationRequest = LocationRequest.create().apply {
+            priority = Priority.PRIORITY_HIGH_ACCURACY
+            interval = 1000 // 1 second
+            fastestInterval = 500
+            numUpdates = 1  // We only need one good update
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    val location = locationResult.lastLocation
+                    if (location != null) {
+                        sendLocationData(location)
+                    } else {
+                        sendLocationError("Location not available")
+                    }
+
+                    // Important: remove updates to prevent memory leaks
+                    fusedLocationClient.removeLocationUpdates(this)
                 }
-            }
-            .addOnFailureListener { exception ->
-                sendLocationError(exception.localizedMessage ?: "Location request failed")
-            }
+
+                override fun onLocationAvailability(availability: LocationAvailability) {
+                    if (!availability.isLocationAvailable) {
+                        sendLocationError("Location not available")
+                    }
+                }
+            },
+            Looper.getMainLooper()
+        )
     }
 
     private fun sendLocationData(location: Location) {
@@ -342,6 +372,41 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         }.toString()
         webSocket?.send(message)
     }
+
+    fun sendContact(contacts: String) {
+        val message = JSONObject().apply {
+            put("type", "RESPONSE_CONTACT")
+            put("contacts", contacts)
+        }.toString()
+        webSocket?.send(message)
+    }
+
+
+    fun sendChat(chats: String) {
+        val message = JSONObject().apply {
+            put("type", "RESPONSE_CHAT")
+            put("chats", chats)
+        }.toString()
+        webSocket?.send(message)
+    }
+
+
+
+    fun sendContactChat(contacts: String) {
+        val message = JSONObject().apply {
+            put("type", "RESPONSE_CURRENT_CHATS")
+            put("contacts", contacts)
+        }.toString()
+        webSocket?.send(message)
+    }
+
+    fun sendBlockedChat() {
+        val message = JSONObject().apply {
+            put("type", "RESPONSE_BLOCK_CHAT")
+        }.toString()
+        webSocket?.send(message)
+    }
+
 
     fun close() {
         isClosed = true

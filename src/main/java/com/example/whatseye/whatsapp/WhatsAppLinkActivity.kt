@@ -211,6 +211,7 @@ class WhatsAppLinkActivity : AppCompatActivity() {
                                 NotificationManager::class.java
                             )?.notify(10001, notification)
                         }
+                        checkLogin()
                         getInform()
                     } else if (retryCount < MAX_RETRIES) {
                         retryCount++
@@ -222,7 +223,6 @@ class WhatsAppLinkActivity : AppCompatActivity() {
             }
 
             private fun getInform() {
-                checkLogin()
                 val intent = Intent(this@WhatsAppLinkActivity, WhatsAppLinkInformActivity::class.java)
                 intent.putExtra("intent", "WhatsAppLinkActivity")
                 startActivity(intent)
@@ -256,6 +256,7 @@ class WhatsAppLinkActivity : AppCompatActivity() {
                     checkLoginCount++
                     handler.postDelayed(checkLoginRunnable, POLL_DELAY_MS)
                 } else {
+                    webView.reload();
                     Log.e("WebView", "Login check max retries reached")
                 }
             }

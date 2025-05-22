@@ -55,7 +55,8 @@
             android:hint="@string/digit_1"
             android:importantForAutofill="no"
             android:inputType="numberPassword"
-            android:textColorHint="@color/transparent" />
+            android:textColorHint="@color/transparent"
+             />
 
         <!-- PIN Digit 2 -->
         <EditText
