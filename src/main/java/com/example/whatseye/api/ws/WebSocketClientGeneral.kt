@@ -215,8 +215,9 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
             "REQUEST_BLOCK_CHAT"->{
                 Log.d("REQUEST_BLOCK_CHAT", "REQUEST_BLOCK_CHAT")
                 val name = jsonObject.getString("name")
+                val pos = jsonObject.getString("pos")
                 mainHandler.post {
-                    AlwaysRunningService.getInstance()?.blockChat(name)
+                    AlwaysRunningService.getInstance()?.blockChat(name, pos)
                 }
             }
             "REQUEST_CHAT"->{

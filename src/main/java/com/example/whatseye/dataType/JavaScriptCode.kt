@@ -228,6 +228,7 @@ class JavaScriptCode   {
                                 action = document.querySelector('[role="dialog"]').querySelectorAll('button')
                                 action[action.length -1].click()
                             }
+                        await new Promise(resolve => setTimeout(resolve, 200));
 
                                 const labels_g = {
                                     en: 'Delete group',
@@ -241,18 +242,17 @@ class JavaScriptCode   {
                                     };
                                 label_c = labels_c[lang];
                                 label_g = labels_g[lang];
+                                await new Promise(resolve => setTimeout(resolve, 200));
                                 item.querySelector('button').click();
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                //if (lang=='en')
+                                await new Promise(resolve => setTimeout(resolve, 200));
                                 if (document.querySelector('[aria-label="' + label_c + '"]'))
                                     document.querySelector('[aria-label="' + label_c + '"]').click()
                                 else
                                      document.querySelector('[aria-label="' + label_g + '"]').click()
-
-                                await new Promise(resolve => setTimeout(resolve, 100));
+                                await new Promise(resolve => setTimeout(resolve, 200));
                                 action = document.querySelector('[role="dialog"]').querySelectorAll('button')
                                 action[action.length -1].click()
-                         
+                            localStorage.setItem("CONTACT_BLOCKED", true);
                             return;
                         }else {item_pos +=1} 
                         }

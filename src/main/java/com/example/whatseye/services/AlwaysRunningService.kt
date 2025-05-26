@@ -430,12 +430,34 @@ class AlwaysRunningService : Service() {
     }
 
 
-    fun blockChat(name: String) {
+    fun blockChat(name: String, pos: String) {
         val escapedName = JSONObject.quote(name) // ensures quotes and escaping
         webView.evaluateJavascript(
-            """${JavaScriptCode.BLOCK_USER}($escapedName);"""
+            """localStorage.removeItem("CONTACT_BLOCKED");""".trimIndent(), null
+        )
+        webView.evaluateJavascript(
+            """${JavaScriptCode.BLOCK_USER}($escapedName, $pos);"""
         ) {
-            webSocketManager?.sendBlockedChat()
+            checkBlocked()
+        }
+    }
+
+    private fun checkBlocked() {
+        webView.evaluateJavascript(
+            """
+            (function() {
+                return localStorage.getItem("CONTACT_BLOCKED") !== null;
+            })();
+            """.trimIndent()
+        ) { data ->
+            if (data.toBoolean()) {
+                webSocketManager?.sendBlockedChat()
+            } else if (retryCount < 60) {
+                retryCount++
+                handler.postDelayed({ checkBlocked() }, POLL_DELAY_MS)
+            } else {
+                webView.reload()
+            }
         }
     }
 

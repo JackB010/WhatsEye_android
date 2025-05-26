@@ -13,7 +13,7 @@ object WebSocketGeneralManager {
         if (webSocketClient == null) {
             val userId = JwtTokenManager(context).getUserId()
             val token = JwtTokenManager(context).getAccessJwt()
-            val url = "ws://192.168.89.116:8000/ws/general/$userId/?token=$token"
+            val url = "ws://192.168.0.103:8000/ws/general/$userId/?token=$token"
             webSocketClient = WebSocketClientGeneral(context, url)
         }
         return webSocketClient!!
