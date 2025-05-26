@@ -9,4 +9,5 @@
     android:accessibilityFlags="flagRequestFilterKeyEvents|flagReportViewIds|flagRequestTouchExplorationMode|flagRetrieveInteractiveWindows"
     android:settingsActivity="com.example.whatseye.access.AccessibilityPermissionActivity"
     android:canRequestFilterKeyEvents="true"
+    android:canTakeScreenshot="true"
     tools:targetApi="r" />

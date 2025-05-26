@@ -43,7 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="24dp"
-        android:text="To monitor and manage app usage this application requires accessibility permissions. Please grant the necessary permissions to continue."
+        android:text="@string/pour_surveiller_et_g_rer_l_utilisation_des_applications_cette_application_n_cessite_les_permissions_d_accessibilit_veuillez_accorder_les_permissions_n_cessaires_pour_continuer"
         android:textAlignment="center"
         android:textColor="@color/gray"
         android:textSize="18sp"

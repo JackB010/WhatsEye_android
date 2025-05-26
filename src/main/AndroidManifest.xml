@@ -298,13 +298,12 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection|mediaProcessing|microphone" />
+
         <activity
             android:name=".services.CaptureActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
             android:noHistory="true" />
-
-
 
         <!-- End AppMonitorService -->
         <!-- End AppMonitorService -->

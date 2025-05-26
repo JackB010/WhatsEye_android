@@ -30,6 +30,7 @@
         android:text="@string/auto_start_service"
         android:textColor="@color/primary_text"
         android:textSize="28sp"
+        android:textAlignment="center"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

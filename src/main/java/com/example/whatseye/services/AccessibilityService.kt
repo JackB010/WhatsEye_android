@@ -108,7 +108,11 @@ class AccessibilityService : AccessibilityService() {
     private fun handleWindowChange(event: AccessibilityEvent) {
         val packageName = event.packageName?.toString() ?: return
         val lockManager = LockManager(this)
+        val className = event.className?.toString() ?: return
+
         Log.d("AccessibilityEvent", "Package: ${event.packageName}, Class: ${event.className}, Text: ${event.text}")
+
+
 
         if (packageName == "com.android.settings" && lockManager.getLockedStatus(packageName)) {
             //performGlobalAction(GLOBAL_ACTION_HOME)
@@ -128,23 +132,23 @@ class AccessibilityService : AccessibilityService() {
             val dbHelper = ScheduleDataBase(this)
             val activeSchedules = dbHelper.getActiveSchedules()
             val notificationManager = ContextCompat.getSystemService(this, NotificationManager::class.java)
+            if(lockManager.getLockedStatus(packageName)) {
+                if (activeSchedules.isNotEmpty()) {
+                    activeSchedules.forEach { schedule ->
+                        createNotificationChannel(this, schedule.name, schedule.name)
 
-            if (activeSchedules.isNotEmpty()) {
-                activeSchedules.forEach { schedule ->
-                    createNotificationChannel(this, schedule.name, schedule.name)
+                        val notification = createNotification(
+                            this,
+                            schedule.name,
+                            "Le verrouillage du planning « ${schedule.name} » est en cours",
+                            "Ce planning se terminera à ${schedule.endTime}"
+                        )
 
-                    val notification = createNotification(
-                        this,
-                        schedule.name,
-                        "Le verrouillage du planning « ${schedule.name} » est en cours",
-                        "Ce planning se terminera à ${schedule.endTime}"
-                    )
+                        notificationManager?.notify(schedule.id.hashCode(), notification)
 
-                    notificationManager?.notify(schedule.id.hashCode(), notification)
-
+                    }
                 }
             }
-
             if ((lockManager.getPhoneStatus() || activeSchedules.isNotEmpty()) && lockManager.getLockedStatus(packageName)) {
                 performGlobalAction(GLOBAL_ACTION_HOME)
                 lockScreenRunnable?.let { handler.removeCallbacks(it) }
@@ -159,16 +163,13 @@ class AccessibilityService : AccessibilityService() {
         }
     }
 
+
     private fun showLockScreen(packageName: String) {
         val intent = Intent(this, LockScreenActivity::class.java).apply {
             putExtra("packageName", packageName)
             addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
                         Intent.FLAG_ACTIVITY_NO_HISTORY or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
                         Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
             )
         }
@@ -192,12 +193,14 @@ class AccessibilityService : AccessibilityService() {
         )
     }
 
+
+
     override fun onInterrupt() {}
 
     override fun onDestroy() {
         super.onDestroy()
         lockScreenRunnable?.let { handler.removeCallbacks(it) }
-
+        handler.removeCallbacksAndMessages(null) // Remove all callbacks
         handler.removeCallbacks(checkBadWordsRunnable)
         unregisterReceiver(screenReceiver)
     }

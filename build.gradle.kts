@@ -87,10 +87,6 @@ dependencies {
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.11")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("com.google.firebase:firebase-crashlytics:19.0.3")
     kapt("com.github.bumptech.glide:compiler:4.15.1")
-
-
-    // WebSocket library
-
-
 }

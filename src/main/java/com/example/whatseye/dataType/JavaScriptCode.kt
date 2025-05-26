@@ -59,83 +59,124 @@ class JavaScriptCode   {
               bc.click()
               localStorage.setItem("CONTACT", JSON.stringify(contacts));
             })();""".trimIndent()
-        val CURRENT_CHATS = """(async() =>{
-               if (document.querySelectorAll('[role="listitem"]').length === 0)
-                  return []
-               const arrowDownEvent = new KeyboardEvent('keydown', {
+        val CURRENT_CHATS = """(async function () {
+                    function delay(ms) {
+                        return new Promise(function (resolve) {
+                            setTimeout(resolve, ms);
+                        });
+                    }
+                    
+                    var listItems = document.querySelectorAll('[role="listitem"]');
+                    if (listItems.length === 0) return [];
+                    
+                    var arrowDownEvent = new KeyboardEvent('keydown', {
                         key: 'ArrowDown',
                         code: 'ArrowDown',
                         keyCode: 40,
                         which: 40,
                         bubbles: true
                     });
-               const searchBox = document.querySelector('[role="textbox"]');
-               searchBox.focus();
-               searchBox.dispatchEvent(arrowDownEvent);
-               
-               const nb = document.querySelector('[aria-rowcount]').getAttribute('aria-rowcount') 
-               contacts = []
-               for(let i=0; i<nb; i++){
-                  await new Promise(resolve => setTimeout(resolve, 60));
-                  item = document.querySelectorAll('[aria-selected="true"]')[1]
-                  let name = item.querySelector("span[title]");
-                  if (name) {
-                     name = name.innerText;
-                     const timestamp = item.querySelector("div[role='gridcell']").lastChild.innerText;
-                     let last_msg = item.querySelector("div[role='gridcell']").parentElement.childNodes[1].querySelector('[title]').innerText
-                     let num_unread = item.querySelector('[role="gridcell"][aria-colindex="1"]').firstChild.innerText
-                     let icon = item.querySelector('img') ? item.querySelector('img').src : "";
-                       contacts.push({ name, timestamp,num_unread ,last_msg, icon });
-                     }
-                        document.querySelectorAll('[aria-selected="true"]')[1].dispatchEvent(arrowDownEvent);
-                  }
-                  
-                  const lang = document.querySelector('html').getAttribute('lang')
-                  if(item.querySelector('[aria-label="Unread"]') || item.querySelector('[aria-label="غير مقروءة"]') || item.querySelector('[aria-label="Non lues"]') ){
-                    await new Promise(resolve => setTimeout(resolve,    300));
-                    item.querySelector('button').click()
-                    await new Promise(resolve => setTimeout(resolve,    300));
                     
-                    if (lang=='en'){
-                       action =  document.querySelector('[aria-label="Mark as unread"]')
-                       if (action)
-                            action.click()
-                       }
-                    if (lang=='ar'){
-                         action =document.querySelector('[aria-label="تمييز كغير مقروءة"]')
-                         if (action)
-                            action.click()
+                    var searchBox = document.querySelector('[role="textbox"]');
+                    searchBox.focus();
+                    searchBox.dispatchEvent(arrowDownEvent);
+                    
+                    var rowCount = parseInt(document.querySelector('[aria-rowcount]').getAttribute('aria-rowcount'), 10);
+                    var contacts = [];
+                    
+                    for (var i = 0; i < rowCount; i++) {
+                        await delay(10*i);
+                    
+                        var selectedItems = document.querySelectorAll('[aria-selected="true"]');
+                        var item = selectedItems[1];
+                        if (!item) continue;
+                    
+                        try {
+                            var nameElem = item.querySelector("span[title]");
+                            if (!nameElem) continue;
+                    
+                            var name = nameElem.innerText;
+                            var gridCell = item.querySelector("div[role='gridcell']");
+                            var timestamp = gridCell && gridCell.lastChild ? gridCell.lastChild.innerText : "";
+                            var lastMsg = "";
+                            try {
+                                lastMsg = gridCell.parentElement.childNodes[1].querySelector('[title]').innerText;
+                            } catch (e) {
+                                lastMsg = "";
+                            }
+                            var unreadCell = item.querySelector('[role="gridcell"][aria-colindex="1"]');
+                            var numUnread = unreadCell && unreadCell.firstChild ? unreadCell.firstChild.innerText : "";
+                            var iconImg = item.querySelector('img');
+                            var icon = iconImg ? iconImg.src : "";
+                    
+                            contacts.push({
+                                name: name,
+                                timestamp: timestamp,
+                                num_unread: numUnread,
+                                last_msg: lastMsg,
+                                icon: icon
+                            });
+                        } catch (err) {
+                            console.warn("Error extracting contact:", err);
                         }
-                    if (lang=='fr'){
-                         action =document.querySelector('[aria-label="Marquer comme non lue"]')
-                         if (action)
-                            action.click()
-                        }
-                }   
-                 await new Promise(resolve => setTimeout(resolve,    300));
-                document.querySelectorAll('[data-icon="menu"]')[1].click()
-                await new Promise(resolve => setTimeout(resolve,    300));
-                if (lang=='en'){
-                    action = document.querySelector('[aria-label="Close chat"]')
-                    if (action)
-                        action.click()
-                    }
-                 if (lang=='ar'){
-                    action = document.querySelector('[aria-label="إغلاق الدردشة"]')
-                    if (action)
-                        action.click()
-                    }
-                  if (lang=='fr'){
-                    action = document.querySelector('[aria-label="Fermer la discussion"]')
-                    if (action)
-                        action.click()
+                    
+                        item.dispatchEvent(arrowDownEvent);
                     }
                     
-                await new Promise(resolve => setTimeout(resolve,    300));
-                document.getElementById("pane-side").scrollTop = 0;
-                
-               localStorage.setItem("CURRENT_CHATS", JSON.stringify(contacts))               
-            })();""".trimIndent()
+                    var lang = document.querySelector('html').getAttribute('lang') || 'en';
+                    var unreadLabels = {
+                        en: "Unread",
+                        ar: "غير مقروءة",
+                        fr: "Non lues"
+                    };
+                    
+                    var unreadLabel = unreadLabels[lang];
+                    var item = document.querySelectorAll('[aria-selected="true"]')[1];
+                    
+                    if (item && item.querySelector('[aria-label="' + unreadLabel + '"]')) {
+                        await delay(300);
+                        var button = item.querySelector('button');
+                        if (button) button.click();
+                        await delay(300);
+                    
+                        var markAsUnreadLabels = {
+                            en: "Mark as unread",
+                            ar: "تمييز كغير مقروءة",
+                            fr: "Marquer comme non lue"
+                        };
+                    
+                        var markAction = document.querySelector('[aria-label="' + markAsUnreadLabels[lang] + '"]');
+                        if (markAction) markAction.click();
+                    }
+                    
+                    await delay(300);
+                    
+                    var menuButtons = document.querySelectorAll('[data-icon="menu"]');
+                    if (menuButtons[1]) {
+                        menuButtons[1].click();
+                    }
+                    
+                    await delay(300);
+                    
+                    var closeChatLabels = {
+                        en: "Close chat",
+                        ar: "إغلاق الدردشة",
+                        fr: "Fermer la discussion"
+                    };
+                    
+                    var closeAction = document.querySelector('[aria-label="' + closeChatLabels[lang] + '"]');
+                    if (closeAction) closeAction.click();
+                    
+                    await delay(300);
+                    
+                    var paneSide = document.getElementById("pane-side");
+                    if (paneSide) {
+                        paneSide.scrollTop = 0;
+                    }
+                    
+                    localStorage.setItem("CURRENT_CHATS", JSON.stringify(contacts));
+                    })();
+                    """.trimIndent()
         val BLOCK_USER = """(async (search, pos=0)=>{
                if (document.querySelectorAll('[role="listitem"]').length === 0) return []
                const arrowDownEvent = new KeyboardEvent('keydown', {
@@ -183,25 +224,35 @@ class JavaScriptCode   {
                             }
                             if(action){
                                 action.click()
-                                await new Promise(resolve => setTimeout(resolve, 300));
+                                await new Promise(resolve => setTimeout(resolve, 200));
                                 action = document.querySelector('[role="dialog"]').querySelectorAll('button')
                                 action[action.length -1].click()
                             }
 
-                            if(block){
-                                await new Promise(resolve => setTimeout(resolve, 300));
-                                item.querySelector('button').click()
-                                await new Promise(resolve => setTimeout(resolve, 300));
-                                if (lang=='en')
-                                    document.querySelector('[aria-label="Delete chat"]').click()
-                                if (lang=='fr')
-                                    document.querySelector('[aria-label="Supprimer la discussion"]').click()
-                                if (lang=='ar')
-                                    document.querySelector('[aria-label="حذف الدردشة"]').click()
-                                await new Promise(resolve => setTimeout(resolve, 300));
+                                const labels_g = {
+                                    en: 'Delete group',
+                                    fr: 'Supprimer le groupe',
+                                    ar: 'حذف المجموعة'
+                                    }
+                                 var labels_c = {
+                                    en:'Delete chat',
+                                    fr:'Supprimer la discussion',
+                                    ar:'حذف الدردشة'
+                                    };
+                                label_c = labels_c[lang];
+                                label_g = labels_g[lang];
+                                item.querySelector('button').click();
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                //if (lang=='en')
+                                if (document.querySelector('[aria-label="' + label_c + '"]'))
+                                    document.querySelector('[aria-label="' + label_c + '"]').click()
+                                else
+                                     document.querySelector('[aria-label="' + label_g + '"]').click()
+
+                                await new Promise(resolve => setTimeout(resolve, 100));
                                 action = document.querySelector('[role="dialog"]').querySelectorAll('button')
                                 action[action.length -1].click()
-                         }
+                         
                             return;
                         }else {item_pos +=1} 
                         }
