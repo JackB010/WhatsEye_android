@@ -20,6 +20,8 @@ import com.example.whatseye.access.DeviceAdminReceiver
 import com.example.whatseye.api.RetrofitClient
 import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
+import com.example.whatseye.api.ws.WebSocketClientGeneral
+import com.example.whatseye.api.ws.WebSocketGeneralManager
 import com.example.whatseye.dataType.data.ChildProfile
 import com.example.whatseye.dataType.data.RecordingData
 import com.example.whatseye.dataType.db.RecordingDatabase
@@ -166,6 +168,9 @@ fun uploadRecord(context: Context, type: String, outputPath:String, db:Boolean) 
     val file = File(outputPath)
     val timestamp = System.currentTimeMillis()
     RetrofitClient.initialize(context)
+    val webSocketManager: WebSocketClientGeneral
+    webSocketManager = WebSocketGeneralManager.getInstance(context)
+
 
     // Prepare the audio file as MultipartBody.Part
     val mimeType = when {
@@ -189,6 +194,10 @@ fun uploadRecord(context: Context, type: String, outputPath:String, db:Boolean) 
     val call = childId?.let {
         RetrofitClient.controlApi.uploadRecording(it, recordingType , timestampRequest ,audioPart)
     }
+    if(type.equals("video"))
+        webSocketManager.sendVideoConfirmation()
+    if(type.equals("voice"))
+        webSocketManager.sendVoiceConfirmation()
 
     call?.enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {

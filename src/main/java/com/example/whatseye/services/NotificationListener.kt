@@ -2,6 +2,7 @@ package com.example.whatseye.services
 
 import android.app.Notification
 import android.content.Intent
+import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -13,7 +14,9 @@ import com.example.whatseye.dataType.data.NotificationData
 
 class NotificationListener : NotificationListenerService() {
 
-    private lateinit var webSocketManager: WebSocketClientGeneral
+    private val webSocketManager: WebSocketClientGeneral by lazy {
+        WebSocketGeneralManager.getInstance(this)
+    }
     private var lastNotificationHash: Int? = null
     private var lastNotificationTime: Long = 0
     private val knownOngoingCalls = listOf(
@@ -28,8 +31,21 @@ class NotificationListener : NotificationListenerService() {
     )
     override fun onCreate() {
         super.onCreate()
-        if(JwtTokenManager(this).getIsLogin())
-            webSocketManager = WebSocketGeneralManager.getInstance(this)
+        if (!isNotificationServiceEnabled()) {
+            Log.w("NotificationListener", "Notification access not granted")
+            // Optionally, prompt user to enable notification access
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } else if (JwtTokenManager(this).getIsLogin()) {
+            //webSocketManager = WebSocketGeneralManager.getInstance(this)
+        }
+    }
+
+    private fun isNotificationServiceEnabled(): Boolean {
+        val pkgName = packageName
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        return flat?.contains(pkgName) == true
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -79,7 +95,8 @@ class NotificationListener : NotificationListenerService() {
         )
 
         Log.d("NotificationListener", "Sending notification: $notificationData")
-        webSocketManager.sendNotification(notificationData)
+        if(!title.equals("No Title"))
+            webSocketManager.sendNotification(notificationData)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {

@@ -89,6 +89,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.MEDIA_PROJECTION" />
+
     <uses-permission
         android:name="android.permission.INSTANT_APP_FOREGROUND_SERVICE"
         tools:ignore="ProtectedPermissions" /> <!-- FOREGROUND_SERVICE -->
@@ -176,10 +177,10 @@
             android:exported="true"
             android:process=":WhatsApp2"
             />
+         <activity android:name=".LoggedInActivity" android:exported="true"/>
 
-        <activity android:name=".LoggedInActivity" android:exported="true"/>
-        <activity android:name=".whatsapp.WhatsAppLinkInformActivity" android:exported="true"/>
-        <!-- WhatsApp -->
+         <activity android:name=".whatsapp.WhatsAppLinkInformActivity" android:exported="true"/>
+         <!-- WhatsApp  -->
 
         <!-- Access -->
         <activity

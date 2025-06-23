@@ -259,7 +259,6 @@ class UpdateProfileActivity : AppCompatActivity() {
         val countryCode = countryCodePicker.selectedCountryCodeWithPlus
         val phoneNumber = if (rawPhone.startsWith("+")) rawPhone else countryCode + rawPhone
 
-        LockManager(this).savePhoneStatus(switchPhoneLocked.isChecked)
         val phoneLocked = switchPhoneLocked.isChecked.toString()
 
         val firstNamePart = firstName.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -293,6 +292,8 @@ class UpdateProfileActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         response.body()?.let { profile ->
                             saveProfileToLocal(this@UpdateProfileActivity, profile)
+                            LockManager(this@UpdateProfileActivity).savePhoneStatus(switchPhoneLocked.isChecked)
+
                         }
                         Toast.makeText(
                             this@UpdateProfileActivity,

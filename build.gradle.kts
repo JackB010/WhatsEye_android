@@ -83,7 +83,9 @@ dependencies {
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
     implementation("com.auth0.android:jwtdecode:2.0.2")
     implementation (libs.mpandroidchart)
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.11")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

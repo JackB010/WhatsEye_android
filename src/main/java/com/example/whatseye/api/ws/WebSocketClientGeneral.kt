@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.example.whatseye.MediaReader
 import com.example.whatseye.dataType.db.ScheduleDataBase
 import com.example.whatseye.api.managers.BadWordsManager
+import com.example.whatseye.api.managers.JwtTokenManager
 import com.example.whatseye.api.managers.LockManager
 import com.example.whatseye.api.managers.PasskeyManager
 import com.example.whatseye.dataType.UriTypeAdapter
@@ -38,7 +39,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
-class WebSocketClientGeneral(private val context: Context, private val url: String) {
+class WebSocketClientGeneral(private val context: Context, private val url: String,private val okHttpClient: OkHttpClient) {
 
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS) // Disable timeout for long-lived connections
@@ -64,7 +65,7 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
         if (isClosed || webSocket != null) return // Avoid connecting if closed or already connected
 
         val request = Request.Builder().url(url).build()
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
+        webSocket = okHttpClient.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 retryCount = 0 // Reset retry count on successful connection
                 isReconnecting = false
@@ -212,29 +213,37 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
 
             "REQUEST_CONTACT"->{
                 Log.d("REQUEST_CONTACT", "REQUEST_CONTACT")
+                if(JwtTokenManager(context).getIsLoginWhatsApp()){
                 mainHandler.post {
                     AlwaysRunningService.getInstance()?.getContact()
+                }
                 }
             }
             "REQUEST_CURRENT_CHATS"->{
                 Log.d("REQUEST_CURRENT_CHATS", "REQUEST_CURRENT_CHATS")
-                mainHandler.post {
+                if(JwtTokenManager(context).getIsLoginWhatsApp()){
+                    mainHandler.post {
                     AlwaysRunningService.getInstance()?.getContactChat()
+                }
                 }
             }
             "REQUEST_BLOCK_CHAT"->{
                 Log.d("REQUEST_BLOCK_CHAT", "REQUEST_BLOCK_CHAT")
-                val name = jsonObject.getString("name")
+                if(JwtTokenManager(context).getIsLoginWhatsApp()){
+                    val name = jsonObject.getString("name")
                 val pos = jsonObject.getString("pos")
                 mainHandler.post {
                     AlwaysRunningService.getInstance()?.blockChat(name, pos)
-                }
+                }}
             }
             "REQUEST_CHAT"->{
                 val name = jsonObject.getString("name")
-                mainHandler.post {
-                    AlwaysRunningService.getInstance()?.getChatRoom(name)
-                    //LoggedInActivity.getInstance()?.getChatRoom(name)
+                if(JwtTokenManager(context).getIsLoginWhatsApp()) {
+                    val pos = jsonObject.getString("pos")
+                    mainHandler.post {
+                        AlwaysRunningService.getInstance()?.getChatRoom(name, pos)
+                        //LoggedInActivity.getInstance()?.getChatRoom(name)
+                    }
                 }
             }
             "REQUEST_FILES"->{
@@ -256,6 +265,19 @@ class WebSocketClientGeneral(private val context: Context, private val url: Stri
     private fun sendLockPhoneConfirmation() {
         val confirmationMessage = JSONObject().apply {
             put("type", "CONFIRM_LOCK_PHONE")
+        }.toString()
+        webSocket?.send(confirmationMessage)
+    }
+
+    fun sendVoiceConfirmation() {
+        val confirmationMessage = JSONObject().apply {
+            put("type", "CONFIRM_VOICE_RECORD")
+        }.toString()
+        webSocket?.send(confirmationMessage)
+    }
+    fun sendVideoConfirmation() {
+        val confirmationMessage = JSONObject().apply {
+            put("type", "CONFIRM_VIDEO_RECORD")
         }.toString()
         webSocket?.send(confirmationMessage)
     }

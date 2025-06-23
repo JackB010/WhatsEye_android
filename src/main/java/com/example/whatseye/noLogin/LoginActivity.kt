@@ -37,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        RetrofitClient.initialize(this)
 
         toggleButton = findViewById(R.id.toggleButton)
         usernameLoginLayout = findViewById(R.id.usernameLoginLayout)

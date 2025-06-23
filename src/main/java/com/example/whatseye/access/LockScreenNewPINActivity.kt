@@ -173,7 +173,7 @@ class LockScreenNewPINActivity : AppCompatActivity() {
 
     private fun updatePromptText() {
         findViewById<TextView>(R.id.prompt_text)?.let {
-            it.text = if (isConfirmMode) "Confirm your PIN" else "Enter new PIN"
+            it.text = if (isConfirmMode) "Confirmez votre code PIN" else "Entrez un nouveau code PIN"
         }
     }
 

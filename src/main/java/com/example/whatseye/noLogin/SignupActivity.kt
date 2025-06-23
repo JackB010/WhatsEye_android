@@ -43,6 +43,7 @@ class SignupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+        RetrofitClient.initialize(this)
 
         val genderField = findViewById<AutoCompleteTextView>(R.id.etGenderSignup)
         val genderOptions = resources.getStringArray(R.array.gender_options)
@@ -75,7 +76,8 @@ class SignupActivity : AppCompatActivity() {
             val password = findViewById<TextInputEditText>(R.id.etPasswordSignup).text.toString().trim()
             val confirmPassword = findViewById<TextInputEditText>(R.id.etPasswordConfirmSignup).text.toString().trim()
             val genderText = genderField.text.toString().trim()
-            val gender = if (genderText.isNotEmpty()) genderText[0] else null
+            var gender = if (genderText.isNotEmpty()) genderText[0] else null
+            gender = if(gender == 'H') 'M' else gender
             val birthday = birthdayField.text.toString().trim()
 
             var valid = true
