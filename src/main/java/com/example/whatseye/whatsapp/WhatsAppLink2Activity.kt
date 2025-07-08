@@ -41,7 +41,8 @@ class WhatsAppLink2Activity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val checkLoginRunnable = Runnable { checkLogin() }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle
+    ?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WebView.setDataDirectorySuffix("WhatsApp2")
         }
@@ -139,7 +140,7 @@ class WhatsAppLink2Activity : AppCompatActivity() {
                     (function() {
                         const buttons = document.querySelectorAll('[role="button"]');
                         if (buttons.length > 0) {
-                            buttons[buttons.length - 1].click();
+                            buttons[buttons.length - 2].click();
                             return true;
                         }
                         return false;

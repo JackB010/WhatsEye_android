@@ -131,6 +131,12 @@ class AlwaysRunningService : Service() {
                 Log.d(TAG, "User is logged in")
                 handler.removeCallbacks(checkLoginRunnable)
                 isLoggedIn = true
+                webView?.evaluateJavascript("""(()=>{
+                    action = document.querySelector('[role="dialog"]')
+                    if(action){
+                        action.querySelector("button").click()
+                    }
+                    })""".trimIndent(), null)
             } else if (checkLoginCount < MAX_RETRIES) {
                 Log.d(TAG, "Login not detected, retrying ($checkLoginCount/$MAX_RETRIES)")
                 checkLoginCount++
@@ -309,7 +315,7 @@ class AlwaysRunningService : Service() {
             """.trimIndent()
         ) { data ->
             if (data.toBoolean()) {
-                scrollContent()
+                scrollContent2()
             } else if (selectRoomRetryCount < 60) {
                 Log.d(TAG, "Room not selected, retrying (${selectRoomRetryCount + 1}/60)")
                 selectRoomRetryCount++
@@ -339,7 +345,7 @@ class AlwaysRunningService : Service() {
             """.trimIndent()
         ) { data ->
             if (data.toBoolean()) {
-                scrollContent2()
+                chatContent()
             } else if (scrollContentRetryCount < 60) {
                 Log.d(TAG, "Scroll not loaded, retrying (${scrollContentRetryCount + 1}/60)")
                 scrollContentRetryCount++

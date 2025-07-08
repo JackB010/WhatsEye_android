@@ -29,9 +29,8 @@ class JavaScriptCode   {
            
            nb = contactContainer.firstChild.firstChild.style.height.replace('px', '')/72
            contacts = []
-            await new Promise(resolve => setTimeout(resolve, 140));
+            await new Promise(resolve => setTimeout(resolve, 200));
            for(let i=0; i<nb; i++){
-              await new Promise(resolve => setTimeout(resolve, 130));
               item = contactContainer.querySelector('[aria-selected_0="false"]')
               if(item.getAttribute('DONE') == null){
                  item.setAttribute('DONE', 'true')
@@ -43,7 +42,7 @@ class JavaScriptCode   {
               }
               item.dispatchEvent(arrowDownEvent);
               item.removeAttribute('aria-selected_0')
-        
+        await new Promise(resolve => setTimeout(resolve, 100));
               if(contactContainer.querySelectorAll('[aria-selected_0="false"]').length ===0){
                  if( contactContainer.querySelectorAll('[role="listitem"]').length !== 0){
                      contactContainer.querySelectorAll('[role="listitem"]').forEach(item=>{ 
@@ -55,7 +54,7 @@ class JavaScriptCode   {
                  }
               }
            }
-              bc = document.querySelector('[data-icon="back"]')
+              bc = document.querySelector('[data-icon="back-refreshed"]')
               bc.click()
               localStorage.setItem("CONTACT", JSON.stringify(contacts));
             })();""".trimIndent()
@@ -203,24 +202,14 @@ class JavaScriptCode   {
                             await new Promise(resolve => setTimeout(resolve, 300));
                             item.querySelector('button').click()
                             await new Promise(resolve => setTimeout(resolve, 300));
-                            const lang = document.querySelector('html').getAttribute('lang')
-                            if (lang=='en')
-                                action = document.querySelector('[aria-label="Block"]')
-                            if (lang=='fr')
-                                action = document.querySelector('[aria-label="Bloquer"]')
-                            if (lang=='ar')
-                                action = document.querySelector('[aria-label="حظر"]')
+                            
+                            action = document.querySelector('[data-icon="block-refreshed"]')
+                           
                             
                             let block = true
 
-                            if(!action){
-                                if (lang=='en')
-                                    action = document.querySelector('[aria-label="Exit group"]')
-                                if (lang=='fr')
-                                    action = document.querySelector('[aria-label="Quitter le groupe"]')
-                                if (lang=='ar')
-                                    action = document.querySelector('[aria-label="الخروج من المجموعة"]')
-                                    
+                            if(!action){   
+                                action = document.querySelector('[data-icon="exit-refreshed"]')
                                 block = false
                             }
                             if(action){
@@ -244,31 +233,10 @@ class JavaScriptCode   {
                   let name = item.querySelector("span[title]");
                    await new Promise(resolve => setTimeout(resolve, 300));
                    item.querySelector('button').click()
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    const lang = document.querySelector('html').getAttribute('lang')
-                    await new Promise(resolve => setTimeout(resolve, 200));
-
-                    const labels_g = {
-                        en: 'Delete group',
-                        fr: 'Supprimer le groupe',
-                        ar: 'حذف المجموعة'
-                        }
-                    const labels_c = {
-                        en:'Delete chat',
-                        fr:'Supprimer la discussion',
-                        ar:'حذف الدردشة'
-                        };
-                    label_c = labels_c[lang];
-                    label_g = labels_g[lang];
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    if (document.querySelector('[aria-label="' + label_c + '"]')){
-                        await new Promise(resolve => setTimeout(resolve, 200));
-                        document.querySelector('[aria-label="' + label_c + '"]').click()
-                        }
-                    else{
-                        await new Promise(resolve => setTimeout(resolve, 200));
-                         document.querySelector('[aria-label="' + label_g + '"]').click()
-                         }
+                    await new Promise(resolve => setTimeout(resolve, 300));              
+                    
+                    document.querySelector('[data-icon="delete"]').click()
+                         
                     await new Promise(resolve => setTimeout(resolve, 200));
                     action = document.querySelector('[role="dialog"]').querySelectorAll('button')
                     action[action.length -1].click()
